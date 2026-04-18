@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Daily · 2026-04-19</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <style>/* Apple-style publication theme.
+ * Tokens lifted from getdesign.md/apple/preview.html (MIT-licensed).
+ * Adapted for long-form article rendering (instead of demo components).
+ */
+
+:root {
+  --black: #1d1d1f;
+  --white: #ffffff;
+  --light-gray: #f5f5f7;
+  --apple-blue: #0071e3;
+  --link-blue: #0066cc;
+  --gray-80: rgba(0, 0, 0, 0.8);
+  --gray-48: rgba(0, 0, 0, 0.48);
+  --border: #d2d2d7;
+  --border-soft: #ededf2;
+  --shadow-card: rgba(0, 0, 0, 0.22) 3px 5px 30px 0;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-text: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.374px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.publication {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 80px 32px 96px;
+}
+
+/* === Title (H1) === */
+.publication h1 {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.07;
+  letter-spacing: -0.4px;
+  color: var(--black);
+  margin-bottom: 12px;
+}
+
+/* Subtitle blockquote (e.g. "> 辛哥的开源风向") */
+.publication blockquote {
+  font-size: 19px;
+  font-weight: 400;
+  color: var(--gray-48);
+  letter-spacing: -0.19px;
+  margin-bottom: 56px;
+  border: none;
+}
+.publication blockquote p {
+  margin: 0;
+}
+
+/* === Sections (H2) === */
+.publication h2 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.32px;
+  color: var(--black);
+  margin: 64px 0 20px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.publication h2:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* === Subsections (H3, repo names / trending entries) === */
+.publication h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.22px;
+  color: var(--black);
+  margin: 36px 0 12px;
+}
+
+/* === Body === */
+.publication p {
+  margin-bottom: 18px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--gray-80);
+}
+
+/* === Lists === */
+.publication ul,
+.publication ol {
+  margin: 0 0 20px;
+  padding-left: 24px;
+}
+.publication li {
+  margin-bottom: 10px;
+  line-height: 1.65;
+  color: var(--gray-80);
+}
+.publication li > strong:first-child {
+  color: var(--black);
+}
+
+/* === Tables (trending top 10) === */
+.publication table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0 32px;
+  font-size: 14px;
+  letter-spacing: -0.1px;
+}
+.publication thead th {
+  text-align: left;
+  font-family: var(--font-text);
+  font-weight: 600;
+  color: var(--gray-48);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.publication tbody td {
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--gray-80);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.publication tbody td:first-child {
+  color: var(--gray-48);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  width: 32px;
+  white-space: nowrap;
+}
+.publication tbody td:nth-child(2) {
+  font-weight: 500;
+  color: var(--black);
+  white-space: nowrap;
+}
+.publication tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* === Code === */
+.publication code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--light-gray);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--black);
+}
+.publication pre {
+  background: var(--light-gray);
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin: 16px 0;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.publication pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* === Links === */
+.publication a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+.publication a:hover {
+  text-decoration: underline;
+}
+
+/* === Strong === */
+.publication strong {
+  font-weight: 600;
+  color: var(--black);
+}
+
+/* === Horizontal rules === */
+.publication hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 48px 0;
+}
+
+/* === Image (in case publications include any) === */
+.publication img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  display: block;
+}
+
+/* === Footer (rendered separately by the shell) === */
+.publication-footer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 32px 48px;
+  font-size: 12px;
+  color: var(--gray-48);
+  text-align: center;
+  letter-spacing: -0.12px;
+}
+.publication-footer a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+/* === Print / PDF tweaks === */
+@media print {
+  body {
+    font-size: 13px;
+  }
+  .publication {
+    max-width: none;
+    padding: 30mm 20mm 25mm;
+  }
+  .publication h1 {
+    font-size: 36px;
+  }
+  .publication h2 {
+    font-size: 22px;
+    margin: 36px 0 14px;
+    padding-top: 18px;
+    page-break-after: avoid;
+  }
+  .publication h3 {
+    font-size: 16px;
+    margin: 24px 0 8px;
+    page-break-after: avoid;
+  }
+  .publication p,
+  .publication li {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .publication table {
+    font-size: 10.5px;
+    page-break-inside: avoid;
+  }
+  .publication thead th {
+    font-size: 9px;
+  }
+  .publication blockquote {
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+}
+
+/* === Mobile === */
+@media (max-width: 720px) {
+  .publication {
+    padding: 48px 20px 64px;
+  }
+  .publication h1 {
+    font-size: 36px;
+  }
+  .publication h2 {
+    font-size: 24px;
+  }
+  .publication table {
+    font-size: 12px;
+  }
+}
+</style>
+</head>
+<body>
+  <article class="publication">
+<h1>GitHub Daily · 2026-04-19</h1>
+<blockquote>
+<p>辛哥的开源风向</p>
+</blockquote>
+<h2>今日头条</h2>
+<p>今日最值得第一眼看的是 Claude Code 生态里同时浮出的两条安全告警：claude-in-chrome MCP 被发现可在无任何提示的情况下跨账号操控他人浏览器；文件历史快照机制则会将 .env 等私钥文件明文留存在本地隐藏目录。两个向量方向不同，但都指向同一个问题——Claude Code 在本机扩展点的权限模型还没收紧。本机装了 claude-in-chrome 的，今天先确认插件版本和更新状态。</p>
+<h2>AI Agent 标杆项目动态</h2>
+<h3>Claude Code</h3>
+<p>今日 Claude Code 最集中的事件是一次迁移代价：v2.1.113 将执行层从 JavaScript 包切换为原生 ELF 二进制，Nix、Guix 等非标准 Linux 发行版因解释器路径不匹配即刻出现兼容性回归，当日 v2.1.114 热修复跟进，同步修了 Agent Teams 权限对话框崩溃。迁移快、回滚快，但 non-standard Linux 的兼容性显然没有提前覆盖到。安全侧两条告警见今日头条；另有多 agent 并发下的父会话死锁已有详细复现在追踪，结论暂时看不准。</p>
+<h3>Codex</h3>
+<p>今日 Codex 最集中的信号是设备密钥基础设施的集中落地——四个关联 PR 一次性把协议定义、核心 crate、app-server 适配层以及 macOS（Secure Enclave）、Windows（CNG/TPM）、Linux（TPM2）三套平台实现全部提交，目标是把本地设备绑定认证推到硬件级。同日 MCP 工具的 permission hook 集成在积极推进，Plan Mode 新增了&quot;清空上下文后实现&quot;分支，让规划对话与实现线程彻底解耦。24 小时三个 alpha 预发布，节奏说明团队处于密集冲刺阶段，但距离可用状态还有多远看不准。</p>
+<h3>OpenClaw</h3>
+<p>今日 OpenClaw 最集中的信号是两处生产级 bug 的定损与修复。weixin 插件 sidecar 误杀父级 gateway 进程并触发无限重启循环，当天提、当天合入，修法是在 stale-pid 清理逻辑中排除整条祖先 PID 链，根因定位清晰。cron 超时遗留幽灵 task 行（已积累 29 条 stale_running 记录）的修复排队等合。当前影响面最宽的未修问题是 OpenRouter base URL 硬编为 <code>/v1</code> 而非 <code>/api/v1</code>，导致所有 OpenRouter 模型调用静默失败——用 OpenRouter 路由的先手动确认，当前版本不报错。功能侧，支持 model-specific AGENTS.md addenda 的实验性 prompt 覆盖层大 PR 进入评审阶段。</p>
+<h3>Hermes Agent</h3>
+<p>今日 Hermes Agent 最清晰的动向是两处主动的架构调整：新增 <code>/steer</code> 指令，允许在 agent 运行期于下一次工具调用结束后注入引导文本，不中断流程也不破坏 prompt cache；<code>execute_code</code> 默认执行模式从隔离临时目录改为 project 模式，与 <code>terminal()</code> 共享相同工作目录和解释器，解决弱模型反复混淆 CWD 的问题。可靠性侧密集落地：流式传输中途 stall 导致工具调用丢失不再静默退出，Signal typing 指标无限重试被指数退避压制，Telegram session 竞态当天报告当天提 PR。另有一条明确标注&quot;灵感来自 Claude Code 2.1.113&quot;的分支，将 macOS <code>/private/</code> 路径绕过等三条危险命令检测规则移植进来——跨项目借鉴，方向清晰。</p>
+<h2>GitHub 开源社区风向</h2>
+<h3>Daily Trending Top 1 · thunderbird/thunderbolt</h3>
+<p>thunderbolt 是 Thunderbird 官方团队出的跨平台 AI 客户端，不是社区玩具。技术栈一句话：React 19 + Tauri 2 打六端壳、Bun + Elysia 后端、PowerSync 做离线同步、better-auth + 后量子加密、Drizzle + PGlite、Playwright e2e、Docker/K8s/Pulumi 部署全家桶——版本号已到 0.1.87、PR 编号超过 600，迭代时间和密度都不短。</p>
+<p>定位上奔着企业私有化部署：自带模型 API key、接 Ollama/OpenAI 兼容端点、MPL-2.0 开源。但现阶段&quot;自主可控&quot;更多是愿景——README 自承强依赖后端认证和搜索服务，真跑起来得自己拉一套 PowerSync + Postgres，门槛不低。和 LibreChat、Jan 这类已经铺开的项目比，技术差异点主要靠 Thunderbird 品牌和企业 FDE 支持，没有特别亮眼的新意。官方声明安全审计仍在进行中，这点使用前要知道。</p>
+<h3>Weekly Trending Top 10</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>项目</th>
+<th>语言</th>
+<th>★ Total</th>
+<th>本周 +★</th>
+<th>一句点评</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>multica-ai/andrej-karpathy-skills</td>
+<td>-</td>
+<td>57.2k</td>
+<td>42,267</td>
+<td>蹭 Karpathy 流量的 prompt 包装，无一行可执行代码</td>
+</tr>
+<tr>
+<td>2</td>
+<td>NousResearch/hermes-agent</td>
+<td>Python</td>
+<td>98.9k</td>
+<td>47,053</td>
+<td>多端+RL轨迹有新意，万行单文件说明架构已失控</td>
+</tr>
+<tr>
+<td>3</td>
+<td>shiyu-coder/Kronos</td>
+<td>Python</td>
+<td>19.2k</td>
+<td>6,511</td>
+<td>K线自回归预测学术有料，勿指望直接用来炒股</td>
+</tr>
+<tr>
+<td>4</td>
+<td>multica-ai/multica</td>
+<td>TypeScript</td>
+<td>16.0k</td>
+<td>10,056</td>
+<td>多 agent 调度看板，无技术新意，架构未收敛</td>
+</tr>
+<tr>
+<td>5</td>
+<td>thedotmack/claude-mem</td>
+<td>TypeScript</td>
+<td>62.2k</td>
+<td>14,033</td>
+<td>工程扎实，60MB 二进制入仓和压缩 git 历史是硬伤</td>
+</tr>
+<tr>
+<td>6</td>
+<td>microsoft/markitdown</td>
+<td>Python</td>
+<td>112k</td>
+<td>13,214</td>
+<td>RAG 文档归一化标配，MCP 整合领先同类</td>
+</tr>
+<tr>
+<td>7</td>
+<td>OpenBMB/VoxCPM</td>
+<td>Python</td>
+<td>14.5k</td>
+<td>5,786</td>
+<td>tokenizer-free TTS 路线清晰，工程是研究组水准</td>
+</tr>
+<tr>
+<td>8</td>
+<td>lsdefine/GenericAgent</td>
+<td>Python</td>
+<td>4,169</td>
+<td>2,375</td>
+<td>技能持久化思路清新，强绑 Windows 跨平台无望</td>
+</tr>
+<tr>
+<td>9</td>
+<td>virattt/ai-hedge-fund</td>
+<td>Python</td>
+<td>56.1k</td>
+<td>4,941</td>
+<td>LLM 名人角色扮演教学 demo，v2 才是正经量化</td>
+</tr>
+<tr>
+<td>10</td>
+<td>EvoMap/evolver</td>
+<td>JavaScript</td>
+<td>4,875</td>
+<td>2,082</td>
+<td>GPL 皮下核心代码全混淆，营销包装不是工程</td>
+</tr>
+</tbody>
+</table>
+<h2>三类读者怎么读</h2>
+<ul>
+<li><strong>开发者</strong>：本机装了 claude-in-chrome 的，今天先确认版本和更新状态；用 OpenClaw 走 OpenRouter 路由的，当前版本 base URL 写错导致静默失败，先手动核查。</li>
+<li><strong>创业者</strong>：thunderbolt 给出的信号是&quot;自带 key + 自托管 + 企业 FDE&quot;这个形态已有 Mozilla 级团队在认真做，同类产品的窗口在压缩，差异化要往 thunderbolt 还没做实的地方找。</li>
+<li><strong>投资者</strong>：Codex 今日的硬件设备密钥落地（Secure Enclave/TPM 全平台）是本地身份绑定的早期基建信号，值得标记跟踪；其余今日无特别建议。</li>
+</ul>
+
+  </article>
+  <footer class="publication-footer">
+    GitHub Daily · 辛哥的开源风向 · <a href="https://github.com/hchen13/github-daily">github.com/hchen13/github-daily</a>
+  </footer>
+</body>
+</html>

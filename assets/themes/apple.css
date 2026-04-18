@@ -1,0 +1,296 @@
+/* Apple-style publication theme.
+ * Tokens lifted from getdesign.md/apple/preview.html (MIT-licensed).
+ * Adapted for long-form article rendering (instead of demo components).
+ */
+
+:root {
+  --black: #1d1d1f;
+  --white: #ffffff;
+  --light-gray: #f5f5f7;
+  --apple-blue: #0071e3;
+  --link-blue: #0066cc;
+  --gray-80: rgba(0, 0, 0, 0.8);
+  --gray-48: rgba(0, 0, 0, 0.48);
+  --border: #d2d2d7;
+  --border-soft: #ededf2;
+  --shadow-card: rgba(0, 0, 0, 0.22) 3px 5px 30px 0;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-text: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.374px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.publication {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 80px 32px 96px;
+}
+
+/* === Title (H1) === */
+.publication h1 {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.07;
+  letter-spacing: -0.4px;
+  color: var(--black);
+  margin-bottom: 12px;
+}
+
+/* Subtitle blockquote (e.g. "> 辛哥的开源风向") */
+.publication blockquote {
+  font-size: 19px;
+  font-weight: 400;
+  color: var(--gray-48);
+  letter-spacing: -0.19px;
+  margin-bottom: 56px;
+  border: none;
+}
+.publication blockquote p {
+  margin: 0;
+}
+
+/* === Sections (H2) === */
+.publication h2 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.32px;
+  color: var(--black);
+  margin: 64px 0 20px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.publication h2:first-of-type {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+/* === Subsections (H3, repo names / trending entries) === */
+.publication h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.22px;
+  color: var(--black);
+  margin: 36px 0 12px;
+}
+
+/* === Body === */
+.publication p {
+  margin-bottom: 18px;
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--gray-80);
+}
+
+/* === Lists === */
+.publication ul,
+.publication ol {
+  margin: 0 0 20px;
+  padding-left: 24px;
+}
+.publication li {
+  margin-bottom: 10px;
+  line-height: 1.65;
+  color: var(--gray-80);
+}
+.publication li > strong:first-child {
+  color: var(--black);
+}
+
+/* === Tables (trending top 10) === */
+.publication table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0 32px;
+  font-size: 14px;
+  letter-spacing: -0.1px;
+}
+.publication thead th {
+  text-align: left;
+  font-family: var(--font-text);
+  font-weight: 600;
+  color: var(--gray-48);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.publication tbody td {
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--gray-80);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.publication tbody td:first-child {
+  color: var(--gray-48);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  width: 32px;
+  white-space: nowrap;
+}
+.publication tbody td:nth-child(2) {
+  font-weight: 500;
+  color: var(--black);
+  white-space: nowrap;
+}
+.publication tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* === Code === */
+.publication code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--light-gray);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--black);
+}
+.publication pre {
+  background: var(--light-gray);
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin: 16px 0;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.publication pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* === Links === */
+.publication a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+.publication a:hover {
+  text-decoration: underline;
+}
+
+/* === Strong === */
+.publication strong {
+  font-weight: 600;
+  color: var(--black);
+}
+
+/* === Horizontal rules === */
+.publication hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 48px 0;
+}
+
+/* === Image (in case publications include any) === */
+.publication img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  display: block;
+}
+
+/* === Footer (rendered separately by the shell) === */
+.publication-footer {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 32px 48px;
+  font-size: 12px;
+  color: var(--gray-48);
+  text-align: center;
+  letter-spacing: -0.12px;
+}
+.publication-footer a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+/* === Print / PDF tweaks === */
+@media print {
+  body {
+    font-size: 13px;
+  }
+  .publication {
+    max-width: none;
+    padding: 30mm 20mm 25mm;
+  }
+  .publication h1 {
+    font-size: 36px;
+  }
+  .publication h2 {
+    font-size: 22px;
+    margin: 36px 0 14px;
+    padding-top: 18px;
+    page-break-after: avoid;
+  }
+  .publication h3 {
+    font-size: 16px;
+    margin: 24px 0 8px;
+    page-break-after: avoid;
+  }
+  .publication p,
+  .publication li {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .publication table {
+    font-size: 10.5px;
+    page-break-inside: avoid;
+  }
+  .publication thead th {
+    font-size: 9px;
+  }
+  .publication blockquote {
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+}
+
+/* === Mobile === */
+@media (max-width: 720px) {
+  .publication {
+    padding: 48px 20px 64px;
+  }
+  .publication h1 {
+    font-size: 36px;
+  }
+  .publication h2 {
+    font-size: 24px;
+  }
+  .publication table {
+    font-size: 12px;
+  }
+}
