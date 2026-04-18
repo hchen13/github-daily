@@ -159,13 +159,15 @@ def run_narrator(repo: RepoConfig, db_path: str, claude_bin: str,
     narrative = result.stdout.strip()
     logger.info("[%s] narrator done in %.1fs, %d chars", repo.full_name, duration, len(narrative))
 
-    # Persist the step
+    # Persist the step. report_date uses local date (publication-day intent),
+    # not UTC date — anchor may be UTC but the publication is keyed on local date.
+    report_date = anchor.astimezone().date().isoformat()
     with get_db(db_path) as conn:
         conn.execute("""
             INSERT OR REPLACE INTO analysis_steps
             (report_date, repo_full_name, step_name, analyst, model, content, duration_s)
             VALUES (?, ?, 'narrative_24h', 'narrator', ?, ?, ?)
-        """, (anchor.date().isoformat(), repo.full_name, model, narrative, duration))
+        """, (report_date, repo.full_name, model, narrative, duration))
 
     return narrative
 
