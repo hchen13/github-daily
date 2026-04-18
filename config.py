@@ -41,11 +41,21 @@ class StorageConfig:
 
 
 @dataclass
+class AnalysisConfig:
+    claude_bin: str = "claude"
+    models: dict = field(default_factory=dict)
+
+    def model_for(self, role: str) -> str:
+        return self.models.get(role) or "claude-sonnet-4-6"
+
+
+@dataclass
 class Config:
     repos: List[RepoConfig] = field(default_factory=list)
     collection: CollectionConfig = field(default_factory=CollectionConfig)
     schedule: ScheduleConfig = field(default_factory=ScheduleConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
+    analysis: AnalysisConfig = field(default_factory=AnalysisConfig)
 
     @property
     def enabled_repos(self) -> List[RepoConfig]:
@@ -89,4 +99,16 @@ def load_config(config_path: Optional[str | Path] = None) -> Config:
         trending_dir=stor.get("trending_dir", "./data/trending"),
     )
 
-    return Config(repos=repos, collection=collection, schedule=schedule, storage=storage)
+    anal = raw.get("analysis", {}) or {}
+    analysis = AnalysisConfig(
+        claude_bin=anal.get("claude_bin", "claude"),
+        models=anal.get("models", {}) or {},
+    )
+
+    return Config(
+        repos=repos,
+        collection=collection,
+        schedule=schedule,
+        storage=storage,
+        analysis=analysis,
+    )

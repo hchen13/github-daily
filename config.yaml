@@ -26,6 +26,13 @@ schedule:
   publish_time: "08:00"
   timezone: "Asia/Shanghai"
 
+analysis:
+  claude_bin: /Users/claire/.local/bin/claude
+  models:
+    narrator: claude-sonnet-4-6
+    trending_reviewer: claude-opus-4-7
+    editor: claude-sonnet-4-6
+
 storage:
   db_path: "./data/github-daily.db"
   trending_dir: "./data/trending"
