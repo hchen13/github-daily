@@ -101,35 +101,46 @@ def clone_repo(full_name: str) -> Optional[Path]:
     return dest
 
 
-def extract_json(text: str) -> Optional[dict]:
-    """Pull the first balanced ``{...}`` block out of a possibly noisy stdout."""
+SECTION_RE = re.compile(r"^(INTRO|TECH_STACK|SCALE|EVALUATION)\s*:\s*$", re.MULTILINE)
+
+
+def parse_review(text: str) -> Optional[dict]:
+    """Parse the four-section format: INTRO/TECH_STACK/SCALE/EVALUATION."""
     text = text.strip()
-    # Strip ``` fences if present
+    # Strip optional code fences
     if text.startswith("```"):
         text = re.sub(r"^```[a-zA-Z]*\n?", "", text)
         text = re.sub(r"\n?```$", "", text)
-    # Try straight parse
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        pass
-    # Find first balanced object
-    depth = 0
-    start = -1
-    for i, ch in enumerate(text):
-        if ch == "{":
-            if depth == 0:
-                start = i
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0 and start >= 0:
-                candidate = text[start:i + 1]
-                try:
-                    return json.loads(candidate)
-                except json.JSONDecodeError:
-                    continue
-    return None
+
+    matches = list(SECTION_RE.finditer(text))
+    if len(matches) < 4:
+        return None
+
+    sections: dict[str, str] = {}
+    for i, m in enumerate(matches):
+        name = m.group(1)
+        body_start = m.end()
+        body_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        sections[name] = text[body_start:body_end].strip()
+
+    if not all(k in sections for k in ("INTRO", "TECH_STACK", "SCALE", "EVALUATION")):
+        return None
+
+    # Parse TECH_STACK as a bullet list
+    tech_stack: list[str] = []
+    for line in sections["TECH_STACK"].splitlines():
+        s = line.strip()
+        if s.startswith(("-", "*", "•")):
+            s = s.lstrip("-*• ").strip()
+        if s:
+            tech_stack.append(s)
+
+    return {
+        "intro": sections["INTRO"].strip(),
+        "tech_stack": tech_stack,
+        "scale": sections["SCALE"].strip(),
+        "evaluation": sections["EVALUATION"].strip(),
+    }
 
 
 def run_reviewer(full_name: str, clone_path: Path, claude_bin: str, model: str) -> Optional[dict]:
@@ -137,7 +148,7 @@ def run_reviewer(full_name: str, clone_path: Path, claude_bin: str, model: str) 
     user_prompt = (
         f"目标仓库：{full_name}\n"
         f"本地克隆路径：{clone_path}\n\n"
-        "开始翻。记住：输出单个 JSON 对象，无 markdown 包裹。"
+        "开始翻。按四个 section 输出：INTRO / TECH_STACK / SCALE / EVALUATION。"
     )
 
     cmd = [
@@ -169,10 +180,13 @@ def run_reviewer(full_name: str, clone_path: Path, claude_bin: str, model: str) 
         return None
 
     raw = result.stdout.strip()
-    parsed = extract_json(raw)
+    parsed = parse_review(raw)
     if not parsed:
-        logger.error("[%s] failed to parse JSON from output (first 300 chars): %s",
-                     full_name, raw[:300])
+        debug_path = Path("/tmp/github-daily/failed") / f"{_slug(full_name)}.txt"
+        debug_path.parent.mkdir(parents=True, exist_ok=True)
+        debug_path.write_text(raw, encoding="utf-8")
+        logger.error("[%s] failed to parse review. Full raw output saved to %s (head: %r)",
+                     full_name, debug_path, raw[:200])
         return None
 
     review = {

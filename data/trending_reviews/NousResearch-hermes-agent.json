@@ -1,0 +1,18 @@
+{
+  "full_name": "NousResearch/hermes-agent",
+  "reviewed_at": "2026-04-18T17:31:29Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 53.5,
+  "intro": "Nous Research 出品的开箱即用 AI Agent 框架，把终端 CLI、Telegram/Discord/Slack/WhatsApp/Signal 网关、技能市场、跨会话记忆、Cron 计划、RL 轨迹采样塞进一个进程，对标 Claude Code 但强调多前端和自我改进循环。",
+  "tech_stack": [
+    "Python 3.11+",
+    "OpenAI / Anthropic SDK（模型无关，支持 OpenRouter/NIM/GLM 等）",
+    "prompt_toolkit + Rich TUI",
+    "FastAPI / uvicorn（网关）",
+    "SQLite FTS5（会话搜索）+ Honcho 用户建模",
+    "Atropos / Tinker RL、Modal / Daytona / Docker / SSH 多后端",
+    "MCP、ACP、agentskills.io 技能协议"
+  ],
+  "scale": "Python 为绝对主力，约 960 个 .py 文件，覆盖 agent/tools/skills/gateway/cron/acp_adapter/hermes_cli/web 等十余个顶层包，结构介于中型单仓到多模块之间。已发布到 v0.10.0，带完整的 9 份 RELEASE_vX.md。仓库是浅克隆所以看不到完整 git history，但版本号和文档更新节奏说明在活跃维护。",
+  "evaluation": "这是 Nous Research 认真下场做 agent 产品的作品，不是玩具，定位很清楚——给 Claude Code/Codex 之外的那一半人（想用开源模型、想跑在 VPS/Termux 手机上、想从 Telegram 指挥 agent 的）一个可落地选项。值得看的点：Atropos + Tinker 的 RL 轨迹采样接在 agent 主循环上，这个路线别家基本没做；OpenClaw 迁移命令说明它在主动蚕食社区里同类项目的用户。硬伤也很明显：run_agent.py 单文件 12062 行、cli.py 10532 行，这种规模的单体 Python 文件基本等于承认内部架构已经失控，号称四层解耦的 README 和代码实际形态对不上。optional-dependencies 堆了 30 多个 extras（从 Matrix e2e 到钉钉飞书到 bedrock），供应链和测试矩阵注定是灾难。适合想折腾多端 agent、想跑 RL 训练的硬核开发者；不适合想读源码学架构的新手，也不适合只想要一个干净 CLI 工具的人——直接用 Claude Code 更省心。新意有，但被工程债严重拖累。"
+}

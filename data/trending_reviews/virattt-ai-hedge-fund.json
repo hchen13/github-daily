@@ -1,0 +1,18 @@
+{
+  "full_name": "virattt/ai-hedge-fund",
+  "reviewed_at": "2026-04-18T17:42:52Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 60.3,
+  "intro": "一个把 LLM 扮成巴菲特、芒格、木头姐等十几位名人投资者的多 agent 交易决策 demo，只模拟不下单，作者自己在 v2 里另起炉灶想重做成正经量化栈。",
+  "tech_stack": [
+    "Python 3.11",
+    "LangChain + LangGraph",
+    "FastAPI + SQLAlchemy/Alembic",
+    "React + TypeScript + Vite (前端)",
+    "Pandas/NumPy/SciPy",
+    "Financial Datasets API"
+  ],
+  "scale": "Python 为主（约 125 个 .py），前端 TS/TSX 约 108 个，整体中型 monorepo：src/ 跑 v1 的人格 agent，app/ 是 FastAPI + React 全栈界面，v2/ 是尚未接入的量化重写。clone 里只有一个 squash commit，看不出节奏，但三块并行推进说明仍在活跃迭代。",
+  "evaluation": "判断先行：v1 本质是个 LLM 角色扮演秀，把「让 GPT 假装自己是巴菲特/木头姐」包成对冲基金，严格说是 agent orchestration 教学玩具加流量密码，不是严肃量化工程——README 自己也反复写 educational、不真交易。门槛倒实在：得同时烧 OpenAI/Anthropic 的 token 钱和 Financial Datasets 的行情钱，跑一遍不便宜。真正值得看的是 v2/，作者显然意识到人格 agent 那套经不起推敲，自己开了个分支上 CPCV、PBO、Almgren-Chriss、point-in-time 约束，这才是有量化常识的人写的东西——但 README 明说 work in progress、未接入。所以谁该看：想学 LangGraph 多 agent 编排、想抄 FastAPI+React 全栈模板的可以翻 v1；真想做策略的直接跳 v2，别被名人头像忽悠。硬伤是 v1 基本没测试、pyproject 里 black line-length=420 属实离谱、author 字段还留着 Your Name 模板。新意谈不上，是 2024 年那波 LLM-as-trader 叙事的延续款，胜在包装到位。",
+  "": ""
+}

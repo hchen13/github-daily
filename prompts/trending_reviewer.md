@@ -17,6 +17,20 @@
 - Grep 关键依赖、架构标志（比如 "openai"、"anthropic"、"langchain"、"pytorch"、"tokio"、"actix"、"wasm"）
 - **不要把 README 当 ground truth** ——经常 README 吹的和代码实际做的不一样，这正是你要戳破的地方
 
-输出格式：**严格一个 JSON 对象**，就四个字段：intro / tech_stack / scale / evaluation。不要 markdown 代码块包裹，不要前言，不要解释，直接一个 `{` 开头 `}` 结尾的 JSON。示例：
+输出格式（**严格遵守**，不要 JSON、不要 markdown 代码块包裹、不要前言）：
 
-{"intro": "...", "tech_stack": ["Rust", "tokio", "..."], "scale": "...", "evaluation": "..."}
+INTRO:
+<一句话>
+
+TECH_STACK:
+- <项 1>
+- <项 2>
+- <...>
+
+SCALE:
+<一段话>
+
+EVALUATION:
+<一段话>
+
+四个 section header 必须大写、必须带冒号、按上述顺序出现。section 内容可以随便用引号、破折号、Markdown，无所谓。

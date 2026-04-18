@@ -1,0 +1,18 @@
+{
+  "full_name": "lsdefine/GenericAgent",
+  "reviewed_at": "2026-04-18T17:50:08Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 112.7,
+  "intro": "一个 Windows 优先、把键鼠 / 浏览器 / ADB / WeChat 全部塞进 9 个原子工具的本地 Agent 框架，主打\"用一次就沉淀一条 Markdown 技能\"的技能库玩法。",
+  "tech_stack": [
+    "Python 3（.py / .pyw 双入口，Windows 重度依赖 win32api）",
+    "手写 HTTP 会话层（requests）接 Claude / OpenAI 兼容 / Minimax，外加 Mixin 故障转移",
+    "bs4 + 自写 simphtml（870 行 HTML 裁剪器）",
+    "Chrome CDP 桥 + simple_websocket_server / bottle 做浏览器注入",
+    "PyQt 桌面宠物 / Streamlit(stapp) / 微信 / 钉钉 / QQ / 飞书 / 企业微信多前端",
+    "ADB + PIL/OCR 做手机端屏控",
+    "Markdown SOP + Python 脚本堆在 `memory/` 当技能库"
+  ],
+  "scale": "纯 Python，顶层 5 个核心脚本 ~2.7K 行（`llmcore.py` 919、`simphtml.py` 870、`ga.py` 558），加上 `frontends/` 9 个接入端再翻 ~5K 行，`memory/` 再塞十几个 SOP + 工具脚本；整体在 **中型单仓** 量级（非 monorepo，扁平）。shallow clone 只看到 1 个 squash commit（2026-04-18），但 README 里迭代日志从 2026-01 拉到 2026-04，单作者活跃维护。",
+  "evaluation": "这是个有想法、但工程卫生一般的**个人主导严肃项目**，不是玩具也不是营销 wrapper。亮点有两处：一是\"技能不是预装而是用一次写一次\"，把执行路径冷凝成 `memory/*_sop.md` 再回召，这个设计在一堆 LangChain 式 Agent 里确实清新；二是真的去啃了 Windows 下控 WeChat / Alipay / 股票客户端这种脏活，不是只会 curl OpenAI。\n\n但硬伤也明显：README 开口就吹\"~3K 行核心\"，实际 `llmcore.py` + `simphtml.py` 就快 1.8K，算上 ga.py 早破 3K，frontends 再堆 5K，这种\"极简\"话术要打折扣。代码风格是**一行塞十条语句 + 裸 `except: pass`** 的上古脚本味，测试只有一份 minimax 集成测试，config 通过\"变量名包含 claude/oai/mixin 字符串\"来分发 Session，非常脆。全链路强绑 Windows（`.pyw`、`win32api`、WeChat PC 客户端），Mac/Linux 用户基本只剩 bash 执行器能用。法律风险也要心里有数——自动化驱动支付宝 / 微信 / 券商客户端，封号和合规问题都是你自己的。\n\n谁适合看：想学\"技能持久化 + 本地系统级控制\"思路的人、折腾 Windows 自动化的国内开发者。谁别碰：想要干净 API 抽象、跨平台、能进生产的团队——这个栈直接不满足。新意有，但被工程粗糙度稀释了。"
+}

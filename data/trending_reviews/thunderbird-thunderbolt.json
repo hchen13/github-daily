@@ -1,0 +1,17 @@
+{
+  "full_name": "thunderbird/thunderbolt",
+  "reviewed_at": "2026-04-18T17:29:37Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 60.3,
+  "intro": "Thunderbird 官方的跨平台 AI 客户端 Thunderbolt，前端一套 React + Tauri 打包成 Web/桌面/iOS/Android，后端 Elysia + PowerSync 做同步，号称让用户自带模型 API key 并可自托管，打的是 'AI 自主可控' 的招牌。",
+  "tech_stack": [
+    "TypeScript / React 19 + Vite",
+    "Tauri 2 (Rust) 跨端壳",
+    "Bun + Elysia 后端 + Drizzle ORM / Postgres(PGlite)",
+    "PowerSync 端到端数据同步",
+    "Vercel AI SDK + MCP + OpenAI/Anthropic/OpenRouter 多 provider",
+    "better-auth + 后量子加密 (@noble/post-quantum)"
+  ],
+  "scale": "前端 src/ 下 600+ 个 ts/tsx，backend/src 100+ 文件，另有 src-tauri Rust 壳、powersync-service、deploy（Docker/K8s/Pulumi）、e2e、storybook、docs 一整套——属于正儿八经的中型多栈工程，结构成熟。shallow clone 只能看到一条 commit，但版本号已到 0.1.87、PR 编号到 633，说明迭代相当活跃。",
+  "evaluation": "Mozilla Thunderbird 团队新开的 AI 客户端，基本盘是严肃工程而不是 demo：Tauri 六端打包、PowerSync 做离线同步、better-auth + 后量子密钥、Drizzle + PGlite、OpenTelemetry、Playwright e2e、Storybook、Docker/K8s/Pulumi 部署全家桶，测试文件满地跑，MPL-2.0 许可——这套配置量说明是奔着企业私有化部署去的。适合想要一个能接 Ollama/OpenAI 兼容端点、自己掌握数据的团队试水，不适合只想点两下就用的普通用户——README 自己也承认目前强依赖后端认证和搜索服务，离线 first 还没做到，所谓 '自主可控' 目前更像是愿景。硬伤有三：一是功能还在早期、官方声明正在做安全审计；二是要跑全套得自己拉一个 PowerSync + Postgres 后端，门槛不低；三是相对 LibreChat、Jan 这类已经铺开的同类项目，差异点主要靠 Thunderbird 品牌和企业 FDE 支持，技术上并没有特别亮眼的新意。看点在于 Mozilla 会不会把它做成真正的 Thunderbird 级项目。"
+}

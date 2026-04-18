@@ -1,0 +1,17 @@
+{
+  "full_name": "multica-ai/multica",
+  "reviewed_at": "2026-04-18T17:48:40Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 62.9,
+  "intro": "给多家 coding agent（Claude Code、Codex、OpenClaw、Hermes、Gemini、Cursor Agent 等）套一层 Linear 式任务看板 + 工作区权限的\"管理层\"，配本地 daemon 把 issue 派发给 agent 去跑，带 WebSocket 实时进度和可复用 skill 库。",
+  "tech_stack": [
+    "Go 1.26 后端（Chi 路由、sqlc、pgx、gorilla/websocket、cobra CLI）",
+    "PostgreSQL 17 + pgvector",
+    "Next.js 16（App Router）Web 应用",
+    "Electron 39 桌面端",
+    "pnpm + Turbo monorepo（apps/packages/server 分层）",
+    "AWS SDK v2（S3、Secrets Manager）、Resend、JWT、Playwright e2e"
+  ],
+  "scale": "中型 monorepo：Go 193 文件、TS/TSX 473 文件，apps（web/desktop/docs）+ packages（core/ui/views/eslint-config/tsconfig）+ server（cmd/internal/migrations/pkg）清晰分层，带 e2e、goreleaser、Docker、Homebrew tap、自托管 compose。server/migrations 里已经堆到 62 对 up/down（001 ~ 至少 015+），说明数据模型还在高频演进。最近一次提交 2026-04-18（就是今天），还挂着 #1322 PR，项目处于活跃开发期。",
+  "evaluation": "严肃工程，不是玩具——Go+Next+Electron+pgvector+WebSocket+JWT+daemon 配对这套基础设施都老老实实自己写了，不是三天 vibe code 能糊出来的。但要认清定位：这是**在别人造的 coding agent 上套壳的协作层**，核心卖点\"像分配同事一样分配给 agent\"本质就是 Linear/Jira 看板 + CLI runner，README 里还专门开一栏跟 Paperclip 对比，基本承认自己在同一片红海里。新意几乎没有，吃的是\"多 agent 统一调度\"这个产品口子而不是技术突破。门槛也不低——PG17+pgvector、Go 1.26、本机装好若干家 agent CLI、Docker、自托管要么云。硬伤：`HANDOFF_ARCHITECTURE_AUDIT.md`、`workspace-url-refactor-proposal.md` 这种文件挂在根目录加上 62 条 migration，说明架构还没收敛；README 的\"你下 10 个员工不是人\"这种营销话术和代码里做的事（就是个任务队列 + WebSocket 广播）落差明显。想搭团队内部 agent 调度台的可以抄它的结构；想看 agent runtime 本身创新的就别来了。"
+}

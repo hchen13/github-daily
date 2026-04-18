@@ -1,0 +1,17 @@
+{
+  "full_name": "microsoft/markitdown",
+  "reviewed_at": "2026-04-18T17:36:27Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 62.6,
+  "intro": "微软官方出的文件→Markdown 通用转换器，覆盖 PDF/Office/HTML/音频/图片/EPUB/zip 等 20+ 格式，目标是把杂七杂八的文档喂给 LLM 前统一成 Markdown。",
+  "tech_stack": [
+    "Python 3.10+",
+    "magika (文件类型识别)",
+    "beautifulsoup4 + markdownify",
+    "pdfminer.six / pdfplumber / python-pptx / mammoth / openpyxl",
+    "Azure Document Intelligence (可选)",
+    "MCP server (独立子包)"
+  ],
+  "scale": "多包 Python 仓库（monorepo 结构），四个子包：markitdown 核心 + markitdown-mcp + markitdown-ocr + sample-plugin，约 69 个 .py 文件、1.1 万行代码，核心是 converters/ 下 20+ 个独立 converter + 插件 entry_points 机制。测试目录齐全（PDF 内存、表格、文档智能专项都有）。Microsoft 官方维护，活跃更新中。",
+  "evaluation": "严肃工程，微软招牌，不是营销 wrapper。定位很实在——不是做 Markdown 预览器，是给 RAG / Agent pipeline 做输入归一化的底座，所以 pandoc 那套它不抄，走的是 \"每种格式单独写 converter + magika 类型嗅探 + 插件机制 + MCP 服务器暴露\" 的路子，MCP 子包说明是奔着 Claude / Codex 这类 agent 的工具生态去的。架构清爽：_base_converter 定接口，converters/ 一个格式一个文件，优先级打分路由，可插拔。门槛在依赖——想全格式得装 `[all]`，PDF/音频/Azure Doc Intel 各自吃一块；纯文档转换没 GPU 要求，但音频转写和图片 caption 要外部账号。硬伤也明显：这么多格式 parser 拼一起，边界 bug 不断（最新 commit 就是修 HTML 深嵌套 RecursionError），依赖面大、装起来脏。适合做 agent 数据 pipeline 的人直接拿来当模块；只要转一两种格式的不用看，pandoc/专用库更轻。新意中等——思路不神奇，但工程密度和 MCP 整合是领先的。"
+}

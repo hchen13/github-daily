@@ -1,0 +1,17 @@
+{
+  "full_name": "thedotmack/claude-mem",
+  "reviewed_at": "2026-04-18T17:50:06Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 148.9,
+  "intro": "给 Claude Code（及 Gemini CLI / OpenCode / Cursor）套一层本地\"记忆层\"——通过 hook 抓取每次会话的工具调用，丢进 SQLite + Chroma，用 Agent 压缩成语义摘要，下次开会话时自动注入上下文。",
+  "tech_stack": [
+    "TypeScript / Node ≥18 / Bun ≥1（测试与脚本大量吃 Bun）",
+    "@anthropic-ai/claude-agent-sdk + @modelcontextprotocol/sdk（MCP 服务器）",
+    "SQLite（observations / sessions / summaries / timeline 全套表）+ Chroma 向量同步",
+    "Express + React 18（本地 37777 端口的 Web Viewer）",
+    "esbuild 打包，plugin/scripts 里塞了一个 60MB 的 bun 独立二进制",
+    "tree-sitter 20+ 语言语法（给 smart-file-read 用）"
+  ],
+  "scale": "TypeScript 为主，src/ 下 241 个 ts 文件、约 4.5 万行，外加 tests/ 95 个测试文件、一个独立的 openclaw 插件子包和一个 ragtime 小工具——已经是中型多包工程的规模。目录分层清晰（cli / hooks / servers / services/{worker,sqlite,context,sync} / supervisor / sdk），CHANGELOG 已走到 v12.2.0，2026-04 还在发版，维护活跃。但 git 里只有 1 个 commit——历史被整体 squash 掉了，看不到真实演进轨迹。",
+  "evaluation": "严肃工程，不是周末玩具。分层（orchestrator → services → agents）做得相当规整，SQLite schema、MCP server、worker supervisor、健康检查、进程注册表该有的都有，95 个测试文件也不是摆设——作者显然是认真在当产品做。但**问题也一抓一把**：一，scope 爆炸，Claude Code / Gemini / OpenCode / Cursor / OpenClaw 全想吃，README 还自动翻译了 32 种语言，tree-sitter 塞了 20+ 种语法，有明显\"把能加的都加上\"的味道；二，plugin/scripts 里直接提交一个 **60MB 的 bun 二进制**到仓库，npm 分发体积离谱；三，git 历史被压成 1 个 commit，版本号却已经 v12.2，透明度扣分；四，核心点子——跨会话记忆注入——Mem0/Letta/SuperMemory 以及 Claude Code 自带的 `/memory` 都在做，它的差异化主要是\"深度嵌 Claude Code hook + 本地 SQLite + MCP 搜索\"这个形态，工程上做得细，但谈不上范式级新意。适合每天重度用 Claude Code、受够了 CLAUDE.md 手工维护的人装来试；不碰 Claude Code 生态、或者不想在本机常驻一个 37777 端口 daemon 的人直接跳过。AGPL-3.0 也请商用方自己掂量。"
+}

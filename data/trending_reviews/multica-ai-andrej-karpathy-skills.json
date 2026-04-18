@@ -1,0 +1,15 @@
+{
+  "full_name": "multica-ai/andrej-karpathy-skills",
+  "reviewed_at": "2026-04-18T17:48:13Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 40.7,
+  "intro": "把 Karpathy 一条推文里列的 LLM 写代码毛病，抄进一个 Claude Code plugin 的 SKILL.md —— 本质是一页行为守则，不是工具。",
+  "tech_stack": [
+    "Claude Code Plugin（`.claude-plugin/plugin.json` + `marketplace.json`）",
+    "Skill 规范（单个 `SKILL.md` + YAML frontmatter）",
+    "Markdown（零代码、零依赖）",
+    "MIT License"
+  ],
+  "scale": "规模极小：一个 plugin 目录 + 一个 skill 目录，核心产物是唯一一份 68 行的 `SKILL.md`，外加 README / EXAMPLES / CLAUDE.md 三份说明文档。结构是 Claude Code 官方 plugin 最小骨架，无代码、无测试、无 CI。Git 历史只有一次提交（2026-04-16），谈不上维护状态 —— 就是一次性发布。",
+  "evaluation": "这是典型的\"营销 wrapper\"级项目，严格说连 wrapper 都算不上 —— 它没包装任何东西，就是把 Karpathy 一条推特的四条观察（Think Before Coding / Simplicity First / Surgical Changes / Goal-Driven Execution）改写成四段 prompt，塞进 Claude Code 的 plugin 目录结构里打包发布。有用吗？内容本身是合理的（让 LLM 少过度工程、少乱动相邻代码、先定验收标准），抄到你自己的 CLAUDE.md 里两分钟就完事。做成\"插件\"唯一的价值是借 Karpathy 的名字提高 marketplace 曝光 —— 说白了就是占坑蹭流量。没有门槛，没有硬伤可言（因为根本没东西可出错），也谈不上新意。谁会想看：想快速抄一段 LLM 行为约束塞进自己项目的人，扫一眼 SKILL.md 就够了。谁不用看：期待这里有实际工具、hook、自动化逻辑的人 —— 一行可执行代码都没有，一个 commit 也说明作者自己大概也不打算长期维护。"
+}

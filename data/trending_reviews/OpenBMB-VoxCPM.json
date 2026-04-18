@@ -1,0 +1,17 @@
+{
+  "full_name": "OpenBMB/VoxCPM",
+  "reviewed_at": "2026-04-18T17:37:24Z",
+  "model": "claude-opus-4-7",
+  "duration_s": 55.2,
+  "intro": "OpenBMB 出的 tokenizer-free TTS，走 diffusion + 自回归直接吐连续语音表征，绕开离散声码 token；当前版 VoxCPM2 是 2B 参数、30 语种、48kHz，支持文本描述造声音和参考音频克隆。",
+  "tech_stack": [
+    "Python 3.10+ / PyTorch 2.5+",
+    "MiniCPM-4 backbone + 自研 AudioVAE",
+    "transformers / huggingface-hub / modelscope",
+    "Gradio 6 WebUI + CLI (argbind)",
+    "FunASR + ZipEnhancer 前处理",
+    "可选 Nano-vLLM / vLLM-Omni 推理加速"
+  ],
+  "scale": "纯 Python，约 40 个源文件 9.6k 行，src/voxcpm 下按 model / modules(audiovae, locdit, locenc, minicpm4, layers) / training / utils 正经分层，外带两个 Gradio 入口和 LoRA 微调脚本；中型单包规模，2025.09 首发、2025.12 出 1.5、2026.04 出 VoxCPM2，迭代节奏密集且在维护。",
+  "evaluation": "这是严肃研究工程，不是套壳。tokenizer-free + 扩散自回归在 TTS 里是明确的技术路线押注，代码对得上 arXiv 技术报告，MiniCPM-4 当语言骨干 + 自家 AudioVAE V2 做 16k→48k 非对称升采样，思路清晰；Apache-2.0 权重开放、可商用，工业可用性强。想做语音克隆 / 多语种 TTS / 端侧合成的人值得看，只想调 API 生成语音的用户没必要凑热闹——跑起来要 GPU（作者自己报 RTX 4090 RTF 0.3），且依赖 funasr、modelscope、HF 一堆重型栈。硬伤也明显：tests/ 只有 592 行基本是 CLI 冒烟，核心 dit / vae / 采样逻辑几乎零单测；`app_old.py` 和 1307 行的 `lora_ft_webui.py` 这种上帝文件并存，说明产品迭代压过了代码整洁；README 把 Nano-vLLM、vLLM-Omni、Voice Design 全塞一起，实际仓内只是调用方。总体：技术有料、工程偏研究组风格，不是成熟 SDK。"
+}
