@@ -25,12 +25,12 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from analysts import build_system_prompt
 from config import Config, RepoConfig, load_config
 from db.models import get_db, init_db
 
 logger = logging.getLogger("editor")
 
-PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "editor.md"
 PUBLICATIONS_DIR = Path("data/publications")
 
 
@@ -155,7 +155,7 @@ def build_user_prompt(target_date: date, repos: list[RepoConfig],
 
 
 def run_editor(claude_bin: str, model: str, user_prompt: str) -> Optional[str]:
-    system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
+    system_prompt = build_system_prompt("editor.md")
     cmd = [
         claude_bin,
         "--print",

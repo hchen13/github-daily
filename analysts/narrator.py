@@ -23,13 +23,13 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
+from analysts import build_system_prompt
 from config import RepoConfig, load_config
 from db.models import get_db, init_db
 
 logger = logging.getLogger("narrator")
 
 WORK_ROOT = Path("/tmp/github-daily")
-PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "narrator.md"
 WINDOW_HOURS = 24
 
 
@@ -126,7 +126,7 @@ def run_narrator(repo: RepoConfig, db_path: str, claude_bin: str,
     workdir = WORK_ROOT / anchor.strftime("%Y-%m-%d") / _slug(repo.full_name)
     paths = _write_dimension_files(workdir, data)
 
-    system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
+    system_prompt = build_system_prompt("narrator.md")
     user_prompt = _build_user_prompt(repo, paths, counts, anchor)
 
     cmd = [

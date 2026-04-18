@@ -29,13 +29,13 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional
 
+from analysts import build_system_prompt
 from config import load_config
 
 logger = logging.getLogger("trending_reviewer")
 
 CLONE_ROOT = Path("/tmp/github-daily/clones")
 REVIEWS_DIR = Path("data/trending_reviews")
-PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "trending_reviewer.md"
 
 
 def _slug(full_name: str) -> str:
@@ -144,7 +144,7 @@ def parse_review(text: str) -> Optional[dict]:
 
 
 def run_reviewer(full_name: str, clone_path: Path, claude_bin: str, model: str) -> Optional[dict]:
-    system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
+    system_prompt = build_system_prompt("trending_reviewer.md")
     user_prompt = (
         f"目标仓库：{full_name}\n"
         f"本地克隆路径：{clone_path}\n\n"
