@@ -2,32 +2,48 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status
+## Setup
 
-Scaffold only. `collectors/`, `renderers/`, `publishers/`, `schedules/` are empty directories — no build, lint, or test commands exist yet. Only `README.md` and `docs/项目定位.CN.md` carry real content.
+```
+python3 -m venv .venv
+.venv/bin/pip install -e .
+```
 
-When adding the first implementation, also establish the toolchain (language choice, dependency manifest, test runner) and record the actual commands here.
+Requires `gh` CLI on PATH and authenticated (`gh auth login`).
+
+## Commands
+
+- `python -m collectors.trending` — fetch GitHub Trending Daily Top 1 + Weekly Top 10, write `data/trending/YYYY-MM-DD.json`.
+- `python -m collectors.repos` — fetch issues / PRs / commits (all branches) / releases for every enabled repo in `config.yaml`, write to SQLite at `data/github-daily.db`. Pass `--repo owner/name` to collect a single repo.
+
+Both scripts accept `--verbose`. Output paths are controlled by `config.yaml` → `storage`.
+
+No test suite yet.
 
 ## Architecture intent
 
 GitHub Daily ("辛哥的开源风向") is a **publication project**, not an agent plugin. It produces one artifact per day: a developer-facing technical briefing with two fixed sections:
 
-1. **AI Agent 标杆项目动态** — tracking `anthropics/claude-code`, `openai/codex`, `openclaw/openclaw`, `NousResearch/hermes-agent`. Answers: what problems users hit, what the community is patching, what direction maintainers are pushing.
-2. **GitHub 开源社区风向** — Daily Trending Top 3 and Weekly Trending Top 10. Answers: what's hot now, and which heat is a trend vs. noise.
+1. **AI Agent 标杆项目动态** — tracks the four repos listed in `config.yaml` under `repos:` (default: `anthropics/claude-code`, `openai/codex`, `openclaw/openclaw`, `NousResearch/hermes-agent`). For each: issues / PRs / commits (all branches) / releases.
+2. **GitHub 开源社区风向** — Daily Trending **Top 1** + Weekly Trending Top 10, deduped.
 
-The pipeline is four decoupled layers, each a top-level directory:
+The pipeline is four decoupled layers:
 
-- `collectors/` — pull raw signals. Repo tracking uses the `gh` CLI; trending discovery fetches GitHub Trending HTML, parses repo slugs, then hydrates via `gh`.
-- `renderers/` — normalize collected data into Markdown + JSON. Markdown + JSON are the canonical artifacts; chat/webhook payloads are re-wrappings of the same output.
-- `publishers/` — optional adapters (Feishu, email, webhook, file export). Distribution is a separate step from artifact generation.
-- `schedules/` — cron entrypoints. Default daily run is 08:00 local time. Schedulers only trigger artifact generation; they do not distribute.
-- `docs/` — editorial rules, scope, implementation plans.
+- `collectors/` — `trending.py` writes JSON per day; `repos.py` writes to SQLite. Repo tracking uses `gh` CLI; trending scrapes HTML then hydrates via `gh`.
+- `renderers/` — (not built yet) normalize collected data into Markdown + JSON publication artifacts.
+- `publishers/` — (not built yet) optional adapters for PDF/JPEG render, Feishu, webhook, email.
+- `schedules/` — (not built yet) cron entrypoints. Default publish time from `config.yaml` is 08:00 local (Asia/Shanghai).
+
+`config.py` is the single source of truth for runtime configuration; all other modules import `RepoConfig`, `CollectionConfig`, etc. from it.
+
+## Storage split
+
+- **Trending data**: JSON file per day under `data/trending/`. No SQLite — trending is publication-oriented and file-first fits the "publishable artifact" principle.
+- **Tracked repo data**: SQLite at `data/github-daily.db`. Schema in `db/models.py`. Tables: `repos`, `issues`, `pull_requests`, `commits`, `releases`, `reports`, `fetch_log`, `analysis_steps`. Full schema is created up front to avoid future migrations.
 
 ## Load-bearing constraints
 
-These shape design choices and should not be violated without discussion:
-
-- **Agent-independent.** No lock-in to OpenClaw, Hermes, or Claude Code as a runtime. The analysis layer must expose a stable interface so the backing model/agent can be swapped (Claude Code CLI today, API or other models later) without touching collectors or renderers.
+- **Agent-independent.** No lock-in to OpenClaw, Hermes, or Claude Code as a runtime. The (future) analysis layer must expose a stable interface so the backing model/agent can be swapped without touching collectors or renderers.
 - **Source-first.** Prefer direct GitHub pages and the `gh` CLI over third-party aggregators.
 - **Publishable artifact.** The repo itself produces the publication. Downstream agents only fetch and distribute — they must not be required to do rendering.
 

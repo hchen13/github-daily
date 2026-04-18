@@ -1,0 +1,31 @@
+repos:
+  - owner: anthropics
+    name: claude-code
+    display_name: Claude Code
+    enabled: true
+  - owner: openai
+    name: codex
+    display_name: Codex
+    enabled: true
+  - owner: openclaw
+    name: openclaw
+    display_name: OpenClaw
+    enabled: true
+  - owner: NousResearch
+    name: hermes-agent
+    display_name: Hermes Agent
+    enabled: true
+
+collection:
+  max_issues: 50
+  max_prs: 30
+  max_commits_per_branch: 20
+  max_releases: 10
+
+schedule:
+  publish_time: "08:00"
+  timezone: "Asia/Shanghai"
+
+storage:
+  db_path: "./data/github-daily.db"
+  trending_dir: "./data/trending"
