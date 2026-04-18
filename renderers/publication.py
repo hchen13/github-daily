@@ -24,6 +24,9 @@ from typing import Optional
 
 from markdown_it import MarkdownIt
 
+from config import load_config
+from renderers.charts import inject_charts
+
 logger = logging.getLogger("renderer")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -41,8 +44,10 @@ def md_to_html_body(md_text: str) -> str:
     return md.render(md_text)
 
 
-def build_html(md_text: str, title: str) -> str:
+def build_html(md_text: str, title: str, target_date: date) -> str:
     body = md_to_html_body(md_text)
+    cfg = load_config()
+    body = inject_charts(body, target_date, cfg.storage.db_path, cfg.enabled_repos)
     css = (ASSETS_DIR / "apple.css").read_text(encoding="utf-8")
     shell = (ASSETS_DIR / "shell.html").read_text(encoding="utf-8")
     return (
@@ -59,7 +64,7 @@ def render(target_date: date, want_pdf: bool, want_jpeg: bool) -> dict[str, Path
         raise FileNotFoundError(f"Publication markdown not found: {md_path}")
 
     md_text = md_path.read_text(encoding="utf-8")
-    html = build_html(md_text, title=f"GitHub Daily · {target_date.isoformat()}")
+    html = build_html(md_text, title=f"GitHub Daily · {target_date.isoformat()}", target_date=target_date)
 
     out_dir = RENDERS_DIR / target_date.isoformat()
     out_dir.mkdir(parents=True, exist_ok=True)

@@ -134,6 +134,55 @@ body {
   color: var(--black);
 }
 
+/* === Repo stats (7-day sparklines under each H3) === */
+.publication .repo-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 14px 0 24px;
+}
+.publication .stat-card {
+  background: var(--light-gray);
+  border-radius: 10px;
+  padding: 12px 14px 10px;
+}
+.publication .stat-label {
+  font-family: var(--font-text);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--gray-48);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.publication .stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.publication .stat-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.22px;
+  color: var(--black);
+}
+.publication .stat-sub {
+  font-size: 10px;
+  color: var(--gray-48);
+  margin-top: 4px;
+  letter-spacing: 0;
+}
+.publication .sparkline {
+  display: block;
+  flex: 0 0 auto;
+}
+
 /* === Tables (trending top 10) === */
 .publication table {
   width: 100%;
@@ -302,6 +351,34 @@ body {
   .publication table {
     font-size: 12px;
   }
+  .publication .repo-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* === Print: keep stat blocks compact === */
+@media print {
+  .publication .repo-stats {
+    gap: 6px;
+    margin: 8px 0 14px;
+  }
+  .publication .stat-card {
+    padding: 8px 10px 6px;
+    page-break-inside: avoid;
+  }
+  .publication .stat-label {
+    font-size: 8px;
+  }
+  .publication .stat-value {
+    font-size: 16px;
+  }
+  .publication .stat-sub {
+    font-size: 8px;
+  }
+  .publication .sparkline {
+    width: 84px;
+    height: 22px;
+  }
 }
 </style>
 </head>
@@ -315,12 +392,16 @@ body {
 <p>今日最值得第一眼看的是 Claude Code 生态里同时浮出的两条安全告警：claude-in-chrome MCP 被发现可在无任何提示的情况下跨账号操控他人浏览器；文件历史快照机制则会将 .env 等私钥文件明文留存在本地隐藏目录。两个向量方向不同，但都指向同一个问题——Claude Code 在本机扩展点的权限模型还没收紧。本机装了 claude-in-chrome 的，今天先确认插件版本和更新状态。</p>
 <h2>AI Agent 标杆项目动态</h2>
 <h3>Claude Code</h3>
+<div class="repo-stats"><div class="stat-card"><div class="stat-label">Issues</div><div class="stat-row"><div class="stat-value">76</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,25.5 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,25.5 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs</div><div class="stat-row"><div class="stat-value">30</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,22.2 45.0,3.0 66.0,26.3 87.0,26.3 108.0,26.3 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,22.2 45.0,3.0 66.0,26.3 87.0,26.3 108.0,26.3 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">Commits</div><div class="stat-row"><div class="stat-value">0</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><line x1="3" y1="29" x2="129" y2="29" stroke="#d2d2d7" stroke-width="1" stroke-dasharray="3 3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs merged</div><div class="stat-row"><div class="stat-value">0</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><line x1="3" y1="29" x2="129" y2="29" stroke="#d2d2d7" stroke-width="1" stroke-dasharray="3 3"/></svg></div><div class="stat-sub">7 日</div></div></div>
 <p>今日 Claude Code 最集中的事件是一次迁移代价：v2.1.113 将执行层从 JavaScript 包切换为原生 ELF 二进制，Nix、Guix 等非标准 Linux 发行版因解释器路径不匹配即刻出现兼容性回归，当日 v2.1.114 热修复跟进，同步修了 Agent Teams 权限对话框崩溃。迁移快、回滚快，但 non-standard Linux 的兼容性显然没有提前覆盖到。安全侧两条告警见今日头条；另有多 agent 并发下的父会话死锁已有详细复现在追踪，结论暂时看不准。</p>
 <h3>Codex</h3>
+<div class="repo-stats"><div class="stat-card"><div class="stat-label">Issues</div><div class="stat-row"><div class="stat-value">75</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,7.4 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,7.4 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs</div><div class="stat-row"><div class="stat-value">45</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,4.1 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,4.1 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">Commits</div><div class="stat-row"><div class="stat-value">87</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,12.5 24.0,17.2 45.0,21.9 66.0,25.1 87.0,3.0 108.0,25.8 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,12.5 24.0,17.2 45.0,21.9 66.0,25.1 87.0,3.0 108.0,25.8 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs merged</div><div class="stat-row"><div class="stat-value">15</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,3.0 108.0,19.5 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,3.0 108.0,19.5 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div></div>
 <p>今日 Codex 最集中的信号是设备密钥基础设施的集中落地——四个关联 PR 一次性把协议定义、核心 crate、app-server 适配层以及 macOS（Secure Enclave）、Windows（CNG/TPM）、Linux（TPM2）三套平台实现全部提交，目标是把本地设备绑定认证推到硬件级。同日 MCP 工具的 permission hook 集成在积极推进，Plan Mode 新增了&quot;清空上下文后实现&quot;分支，让规划对话与实现线程彻底解耦。24 小时三个 alpha 预发布，节奏说明团队处于密集冲刺阶段，但距离可用状态还有多远看不准。</p>
 <h3>OpenClaw</h3>
+<div class="repo-stats"><div class="stat-card"><div class="stat-label">Issues</div><div class="stat-row"><div class="stat-value">75</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,23.5 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,23.5 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs</div><div class="stat-row"><div class="stat-value">45</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">Commits</div><div class="stat-row"><div class="stat-value">147</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,17.4 24.0,17.4 45.0,17.4 66.0,28.4 87.0,3.0 108.0,5.3 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,17.4 24.0,17.4 45.0,17.4 66.0,28.4 87.0,3.0 108.0,5.3 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs merged</div><div class="stat-row"><div class="stat-value">15</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div></div>
 <p>今日 OpenClaw 最集中的信号是两处生产级 bug 的定损与修复。weixin 插件 sidecar 误杀父级 gateway 进程并触发无限重启循环，当天提、当天合入，修法是在 stale-pid 清理逻辑中排除整条祖先 PID 链，根因定位清晰。cron 超时遗留幽灵 task 行（已积累 29 条 stale_running 记录）的修复排队等合。当前影响面最宽的未修问题是 OpenRouter base URL 硬编为 <code>/v1</code> 而非 <code>/api/v1</code>，导致所有 OpenRouter 模型调用静默失败——用 OpenRouter 路由的先手动确认，当前版本不报错。功能侧，支持 model-specific AGENTS.md addenda 的实验性 prompt 覆盖层大 PR 进入评审阶段。</p>
 <h3>Hermes Agent</h3>
+<div class="repo-stats"><div class="stat-card"><div class="stat-label">Issues</div><div class="stat-row"><div class="stat-value">75</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,20.8 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,20.8 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs</div><div class="stat-row"><div class="stat-value">45</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">Commits</div><div class="stat-row"><div class="stat-value">203</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,14.6 24.0,4.1 45.0,17.4 66.0,4.1 87.0,3.0 108.0,18.5 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,14.6 24.0,4.1 45.0,17.4 66.0,4.1 87.0,3.0 108.0,18.5 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div><div class="stat-card"><div class="stat-label">PRs merged</div><div class="stat-row"><div class="stat-value">15</div><svg width="132" height="32" viewBox="0 0 132 32" class="sparkline"><polygon points="3.0,29.0 3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0 129.0,29.0" fill="rgba(0,113,227,0.10)"/><polyline points="3.0,29.0 24.0,29.0 45.0,29.0 66.0,29.0 87.0,29.0 108.0,3.0 129.0,29.0" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="129.0" cy="29.0" r="2.5" fill="#0071e3"/></svg></div><div class="stat-sub">7 日</div></div></div>
 <p>今日 Hermes Agent 最清晰的动向是两处主动的架构调整：新增 <code>/steer</code> 指令，允许在 agent 运行期于下一次工具调用结束后注入引导文本，不中断流程也不破坏 prompt cache；<code>execute_code</code> 默认执行模式从隔离临时目录改为 project 模式，与 <code>terminal()</code> 共享相同工作目录和解释器，解决弱模型反复混淆 CWD 的问题。可靠性侧密集落地：流式传输中途 stall 导致工具调用丢失不再静默退出，Signal typing 指标无限重试被指数退避压制，Telegram session 竞态当天报告当天提 PR。另有一条明确标注&quot;灵感来自 Claude Code 2.1.113&quot;的分支，将 macOS <code>/private/</code> 路径绕过等三条危险命令检测规则移植进来——跨项目借鉴，方向清晰。</p>
 <h2>GitHub 开源社区风向</h2>
 <h3>Daily Trending Top 1 · thunderbird/thunderbolt</h3>

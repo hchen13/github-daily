@@ -125,6 +125,55 @@ body {
   color: var(--black);
 }
 
+/* === Repo stats (7-day sparklines under each H3) === */
+.publication .repo-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin: 14px 0 24px;
+}
+.publication .stat-card {
+  background: var(--light-gray);
+  border-radius: 10px;
+  padding: 12px 14px 10px;
+}
+.publication .stat-label {
+  font-family: var(--font-text);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--gray-48);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.publication .stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.publication .stat-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.22px;
+  color: var(--black);
+}
+.publication .stat-sub {
+  font-size: 10px;
+  color: var(--gray-48);
+  margin-top: 4px;
+  letter-spacing: 0;
+}
+.publication .sparkline {
+  display: block;
+  flex: 0 0 auto;
+}
+
 /* === Tables (trending top 10) === */
 .publication table {
   width: 100%;
@@ -292,5 +341,33 @@ body {
   }
   .publication table {
     font-size: 12px;
+  }
+  .publication .repo-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* === Print: keep stat blocks compact === */
+@media print {
+  .publication .repo-stats {
+    gap: 6px;
+    margin: 8px 0 14px;
+  }
+  .publication .stat-card {
+    padding: 8px 10px 6px;
+    page-break-inside: avoid;
+  }
+  .publication .stat-label {
+    font-size: 8px;
+  }
+  .publication .stat-value {
+    font-size: 16px;
+  }
+  .publication .stat-sub {
+    font-size: 8px;
+  }
+  .publication .sparkline {
+    width: 84px;
+    height: 22px;
   }
 }
