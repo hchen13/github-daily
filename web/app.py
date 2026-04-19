@@ -115,6 +115,7 @@ def render_chrome(title: str, body: str, current_date: Optional[str] = None) -> 
     </div>
   </nav>
 {body}
+  <script src="/assets/themes/chart-tooltip.js"></script>
 </body>
 </html>
 """

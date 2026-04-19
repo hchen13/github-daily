@@ -49,12 +49,14 @@ def build_html(md_text: str, title: str, target_date: date) -> str:
     cfg = load_config()
     body = inject_activity_panel(body, target_date, cfg.storage.db_path, cfg.enabled_repos)
     css = (ASSETS_DIR / "apple.css").read_text(encoding="utf-8")
+    js = (ASSETS_DIR / "chart-tooltip.js").read_text(encoding="utf-8")
     shell = (ASSETS_DIR / "shell.html").read_text(encoding="utf-8")
     return (
         shell
         .replace("{{TITLE}}", title)
         .replace("{{CSS}}", css)
         .replace("{{BODY}}", body)
+        .replace("{{CHART_SCRIPT}}", js)
     )
 
 
