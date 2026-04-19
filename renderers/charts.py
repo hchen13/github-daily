@@ -155,7 +155,7 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         cumulative_by_repo[repo.full_name] = _cumulative(daily_total)
 
     # Layout — leave room on the right for avatar + label + value
-    pad_top, pad_right, pad_bottom, pad_left = 20, 120, 32, 14
+    pad_top, pad_right, pad_bottom, pad_left = 20, 110, 32, 14
     plot_w = width - pad_left - pad_right
     plot_h = height - pad_top - pad_bottom
     n = len(days)
@@ -339,10 +339,10 @@ def _signal_cards(repos: Sequence, daily: dict, days: list[str]) -> list[dict]:
         if best:
             ratio, repo, cur, prev = best
             if ratio == float("inf"):
-                detail = f"昨日活跃度 {cur}，前一日为 0 — 冷启动爆发。"
+                detail = f"昨日新增活动 {cur} 项，前日为 0 — 冷启动爆发。"
             else:
                 pct = int(round(ratio * 100))
-                detail = f"昨日综合活跃度 {cur}，较前日 {prev} 增长 {pct:+d}%。"
+                detail = f"昨日新增活动 {cur} 项，较前日 {prev} 项激增 {pct:+d}%。"
             cards.append({
                 "icon": _ICON_TREND_UP, "tone": "purple",
                 "title": "最快上升", "repo": repo, "detail": detail,

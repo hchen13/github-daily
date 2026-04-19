@@ -129,7 +129,7 @@ body {
 .publication .activity-panel {
   margin: 4px 0 36px;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 210px;
   grid-template-areas:
     "momentum signals"
     "kpis     kpis";
