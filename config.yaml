@@ -10,10 +10,12 @@ repos:
   - owner: openclaw
     name: openclaw
     display_name: OpenClaw
+    short_name: 龙虾
     enabled: true
   - owner: NousResearch
     name: hermes-agent
     display_name: Hermes Agent
+    short_name: 爱马仕
     enabled: true
 
 collection:

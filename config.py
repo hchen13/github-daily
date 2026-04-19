@@ -13,11 +13,17 @@ class RepoConfig:
     owner: str
     name: str
     display_name: str
+    short_name: str = ""  # optional nickname for compact chart labels
     enabled: bool = True
 
     @property
     def full_name(self) -> str:
         return f"{self.owner}/{self.name}"
+
+    @property
+    def label(self) -> str:
+        """Preferred label for compact spots (charts, badges)."""
+        return self.short_name or self.display_name
 
 
 @dataclass
@@ -74,6 +80,7 @@ def load_config(config_path: Optional[str | Path] = None) -> Config:
             owner=r["owner"],
             name=r["name"],
             display_name=r.get("display_name", f"{r['owner']}/{r['name']}"),
+            short_name=r.get("short_name", ""),
             enabled=r.get("enabled", True),
         )
         for r in raw.get("repos", [])
