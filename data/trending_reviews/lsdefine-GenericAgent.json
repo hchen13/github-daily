@@ -1,18 +1,24 @@
 {
   "full_name": "lsdefine/GenericAgent",
-  "reviewed_at": "2026-04-19T03:49:27Z",
+  "reviewed_at": "2026-04-19T04:48:29Z",
   "model": "claude-opus-4-7",
-  "duration_s": 138.5,
-  "intro": "一个单仓 Python 实现的自主 agent 框架，核心约 3K 行，对接多家 LLM，给用户本机浏览器、终端、文件系统、键鼠和 ADB 手机的执行权，靠逐步沉淀技能库来迭代自己。",
+  "duration_s": 238.8,
+  "intro": "一个 Python 写的自主 Agent 框架，9 个原子工具让 LLM 直接驱动本地浏览器、终端、键鼠和 ADB 手机，跑过的任务沉淀为可复用 Skill。",
   "tech_stack": [
-    "Python 3（无重型框架，纯 requests/subprocess/线程）",
-    "多 LLM 后端：Claude / OpenAI / Gemini / Kimi / MiniMax / GLM（自写的 llmcore.py 适配层）",
-    "浏览器控制：自写的 TMWebDriver + CDP 桥接（注入真实浏览器，不走 Playwright）",
-    "前端壳：Streamlit / PyQt / pywebview，另带 Telegram / WeChat / DingTalk / QQ / 企微 bot",
-    "手机控制：ADB + 自写 OCR/UI 检测",
-    "分层记忆 L0-L4（纯文本文件 + 技能目录，没有向量库）"
+    "Python（扁平脚本，无 packaging）",
+    "TMWebDriver + Chrome CDP 浏览器注入",
+    "Streamlit / PyQt / pywebview 桌面前端",
+    "Claude / OpenAI 兼容 / Kimi / MiniMax / GLM 多 LLM 后端",
+    "Telegram / QQ / 企业微信 / 钉钉 / 飞书 / 个人微信 Bot",
+    "ADB 安卓控制、分层记忆以 Markdown SOP 落盘"
   ],
-  "scale": "纯 Python 项目，核心 6 个文件（agent_loop / agentmain / ga / llmcore / simphtml / TMWebDriver）合计约 3K 行，算上 7 个前端壳和 memory 子模块总共约 8.8K 行；单仓平铺结构，没有子包嵌套。git 历史只有一条 squash commit（4abb8e2，今日），README 里声称\"每一次 commit 都是 agent 自主完成\"——但真实历史里压根没有多条 commit，看不出维护节奏。",
-  "verdict": "思路有料的极简自演化 agent 框架，China-first 场景打得深，但仓库历史和营销口径对不上，落地前得自己掂量信任度。",
-  "evaluation": "这是一个有真实想法、但包装大于事实的个人/小团队项目。值得看的地方：agent_loop.py 真的就是百来行的生成器驱动循环，tools_schema.json 真的就是 9 个原子工具（code_run / file_* / web_* / update_working_checkpoint / ask_user / start_long_term_update），分层记忆也是老老实实把 L0-L4 落到文本文件——\"极简\"这个卖点代码层面对得上。llmcore.py 里手搓了 Claude/OAI/Gemini/Kimi/MiniMax/GLM/Mixin 多后端、自动压缩历史标签、工具描述轮换，这部分工程量不小且有细节。TMWebDriver 走的是 CDP 桥接注入用户已登录的真实浏览器，这才是它敢打 WeChat / 支付宝 / 点外卖这类 demo 的底气，和 Playwright 沙箱路线是另一个思路。门槛和风险都很明显：要自备 API key、要往真实浏览器里注入脚本、要给 ADB 控手机、要在本机跑任意代码——这是个高权限玩具，不适合给非技术用户或企业场景。最大的信任问题在 git 历史：README 把\"agent 自主完成每一条 commit\"当核心卖点，而仓库里就一条 squash commit，这种口径和证据的错位让\"自举\"叙事整个打折。新意评估：和 AutoGPT / OpenInterpreter / Claude Code 比，它的差异化在\"真实浏览器注入 + 技能文本库 + 中国 IM 全家桶前端\"，技术路线不新但组合确实少见。想看极简 agent loop 写法的可以抄 agent_loop.py 和 tools_schema.json；想直接用的建议先 fork、关掉 ADB 和浏览器注入再说。"
+  "scale": "Python 为主，扁平目录无包装：llmcore 919 行、simphtml 870 行、ga 558 行、agentmain 260、agent_loop 121，叠加 frontends（qtapp 一个就 1746 行）、memory、reflect、tests，整体约 8K 行。README 自述\"核心 ~3K 行\"大致属实。公开 git 只有一条 squash commit，时间戳是当天，但新闻线可追到 2026-01，真实迭代节奏在公开仓库里看不见。",
+  "scale_tag": "中型 ~8k 行",
+  "tech_tags": [
+    "Python",
+    "CDP 真实浏览器注入",
+    "多 IM Bot 前端"
+  ],
+  "verdict": "野路子国产 Agent 框架，适合折腾本地自动化的玩家，不适合当严肃工程参考抄。",
+  "evaluation": "介于个人作品和工程项目之间，有几处真正值得看。**技术点**：TMWebDriver 通过 CDP 注入用户自己日常用的 Chrome，而不是另起一个干净会话——微信、支付宝、淘宝的登录态直接可用，这是它能在国内场景干活的关键底气；分层记忆（L0 元规则 / L1 索引 / L2 事实 / L3 SOP / L4 归档）落到 memory/ 下就是一堆 .md 文件 + 少量 Python 工具，工程量小但够用；MixinSession 多后端故障转移、IM 前端覆盖到个人微信/QQ/钉钉/飞书，国内折腾自动化的场景齐了。**代价**：代码密度极高，一行塞三四个语句加分号，llmcore 一个文件 919 行，读起来像作者一个人的密语；公开 git 只有一条 squash commit，README 吹的\"自举实证——每条 commit 都是 agent 自己做的\"无从验证；个人微信逆向、ADB 驱动支付宝这类玩法，法律风险自己掂量；与 OpenClaw 对比表里那句\"OpenClaw 53 万行\"基本是营销口径。**适合**：想在自己机器上把 agent 跑起来、能忍受作者密集风格 Python 的国内玩家。**不适合**：找可读框架抄模块、做团队部署、或者代码要过 review 的人。新意有限，\"技能结晶化\"思路和 Voyager 一脉相承，真正的差异化在真实浏览器接管和中文 IM 生态覆盖。"
 }

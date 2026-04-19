@@ -101,7 +101,10 @@ def clone_repo(full_name: str) -> Optional[Path]:
     return dest
 
 
-SECTION_RE = re.compile(r"^(INTRO|TECH_STACK|SCALE|VERDICT|EVALUATION)\s*:\s*$", re.MULTILINE)
+SECTION_RE = re.compile(
+    r"^(INTRO|TECH_STACK|SCALE|SCALE_TAG|TECH_TAGS|VERDICT|EVALUATION)\s*:\s*$",
+    re.MULTILINE,
+)
 
 REQUIRED_SECTIONS = ("INTRO", "TECH_STACK", "SCALE", "EVALUATION")
 
@@ -129,19 +132,25 @@ def parse_review(text: str) -> Optional[dict]:
     if not all(k in sections for k in REQUIRED_SECTIONS):
         return None
 
-    # Parse TECH_STACK as a bullet list
-    tech_stack: list[str] = []
-    for line in sections["TECH_STACK"].splitlines():
-        s = line.strip()
-        if s.startswith(("-", "*", "•")):
-            s = s.lstrip("-*• ").strip()
-        if s:
-            tech_stack.append(s)
+    def _parse_bullets(body: str) -> list[str]:
+        items: list[str] = []
+        for line in body.splitlines():
+            s = line.strip()
+            if s.startswith(("-", "*", "•")):
+                s = s.lstrip("-*• ").strip()
+            if s:
+                items.append(s)
+        return items
+
+    tech_stack = _parse_bullets(sections["TECH_STACK"])
+    tech_tags = _parse_bullets(sections.get("TECH_TAGS", ""))
 
     return {
         "intro": sections["INTRO"].strip(),
         "tech_stack": tech_stack,
         "scale": sections["SCALE"].strip(),
+        "scale_tag": sections.get("SCALE_TAG", "").strip(),
+        "tech_tags": tech_tags,
         "verdict": sections.get("VERDICT", "").strip(),
         "evaluation": sections["EVALUATION"].strip(),
     }

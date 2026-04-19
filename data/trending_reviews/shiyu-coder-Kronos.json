@@ -1,18 +1,24 @@
 {
   "full_name": "shiyu-coder/Kronos",
-  "reviewed_at": "2026-04-19T03:45:47Z",
+  "reviewed_at": "2026-04-19T04:43:13Z",
   "model": "claude-opus-4-7",
-  "duration_s": 61.9,
-  "intro": "一个为金融 K 线（OHLCV）序列预训练的 decoder-only 基础模型，作者是清华团队，论文已被 AAAI 2026 接收，给做量化研究、策略开发、时间序列预测实验的人用。",
+  "duration_s": 68.6,
+  "intro": "Kronos 是一个面向金融 K 线（OHLCV）序列的开源基础模型家族，提供预训练权重、微调脚本和 A 股回测示例，给量化研究者和算法交易开发者做预测基线。",
   "tech_stack": [
-    "PyTorch（torch>=2.0）",
-    "自研 BSQ（Binary Spherical Quantization）分层 tokenizer",
-    "decoder-only Transformer，自回归 token 预测",
-    "Hugging Face Hub（模型托管 + `PyTorchModelHubMixin`）",
-    "Flask + Plotly webui，Qlib 驱动的微调 pipeline",
-    "einops / safetensors / torchrun 多卡训练"
+    "Python 3.10+ / PyTorch 2.0+",
+    "Decoder-only Transformer + BSQ（Binary Spherical Quantization）离散化 tokenizer",
+    "HuggingFace Hub（PyTorchModelHubMixin）分发权重",
+    "einops / safetensors / pandas / numpy",
+    "Qlib（微软量化库）做 A 股数据处理与回测",
+    "torchrun 多卡训练；webui 自带轻量推理界面"
   ],
-  "scale": "Python 单体项目，约 9000 行业务代码，结构分成 `model/`（约 1250 行核心网络）、`finetune/`（Qlib+torchrun 训练）、`finetune_csv/`（通用 CSV 微调）、`examples/`（预测/回测脚本，含中国 A 股、akshare 数据、GUI 版本）、`webui/`（Flask 交互前端）、`tests/`（一个回归测试）。模型权重托管在 HF 上（mini/small/base 开源，large 不开源）。仓库活跃，最新提交在本周，PR 合并频繁。",
-  "verdict": "严肃学术项目，AAAI 2026 中稿带代码和权重，适合量化研究者实验，不是能直接上生产的策略系统。",
-  "evaluation": "这是一个被学术会议接收过的正经工作，不是蹭热点的 wrapper。核心贡献有两点值得看：一是用 Binary Spherical Quantization 把连续的 OHLCV 量化成分层离散 token（s1/s2 两段），让 K 线可以像语言一样被 decoder-only 自回归建模；二是放出了 mini/small/base 三个尺寸的权重（4.1M 到 102M 参数）以及完整的 tokenizer+predictor 两阶段微调流水线，基于 Qlib 做 A 股示例。代码组织清楚，module.py 里的 BSQ 实现和论文能对得上，有 torchrun 多卡脚本和一个回归测试，算是有工程下限。适合做量化研究、时间序列基础模型对比、或者在自有 K 线数据上微调看能不能出信号的人；不适合期待拿来就能跑策略的散户——README 作者自己把话说在前头，demo 的 top-K 策略没有做因子中性化、没有建模滑点和成交成本，预测信号离 alpha 还差一整套组合优化。几点要注意：最大的 499M 模型没开源；`finetune/` 里的注释作者明确说是 Gemini 生成的，逻辑以代码为准；金融时序预测本身噪声极高，别因为是\"foundation model\"就高估样本外泛化。新意方面，TSFM 这个方向已经有 Lag-Llama、Chronos、TimeGPT 等一串在做，Kronos 的区别是专做金融 OHLCV 并用了分层量化，不是泛时序，这个定位本身有差异化价值，但能不能跑赢传统因子模型要自己做样本外验证。"
+  "scale": "纯 Python 项目，核心 `model/`（kronos.py + module.py）约 1200 行，`finetune/` 训练+回测管线约 1300 行，`webui/` Flask 推理界面约 700 行，`examples/` 下有十来个脚本（其中 A 股/akshare 示例单文件上千行，明显是作者自己用的半成品）。总体中型单包结构，配四档模型权重（4.1M / 24.7M / 102.3M / 499M，最大档未开源）。本地 clone 是 shallow，只有一条合并 commit 可见，看不到完整提交节奏，但 README 新闻栏显示 2025 年 8 月发 arXiv、2025 年 11 月被 AAAI 2026 接收、近期还在合 PR，维护活跃。",
+  "scale_tag": "中型研究代码库",
+  "tech_tags": [
+    "PyTorch",
+    "金融 K 线基础模型",
+    "AAAI 2026"
+  ],
+  "verdict": "有论文有权重有微调管线的金融时序基础模型，适合量化研究者当预训练基线，不是能直接上线交易的策略。",
+  "evaluation": "这是一篇已被 AAAI 2026 接收的学术工程，代码风格是典型的规范 ML research repo——模型定义、训练、推理、回测分层清楚，PyTorchModelHubMixin 接入 HF 分发，四档模型尺寸覆盖从玩具（4M）到中等（500M，但这档没开源）。真正有意思的点在两处：一是用 Binary Spherical Quantization 把连续 OHLCV 离散化成分层 token、再套自回归 Transformer 当语言模型训，在时序基础模型赛道（Chronos / TimesFM / Moirai / Lag-Llama）里算一种针对 K 线多变量结构的具体设计；二是它不回避金融场景的特殊性，README 里作者自己把话说得很直——原始信号 ≠ 纯 alpha、示例 top-K 策略不是生产级、回测没建模滑点和冲击成本，这种自我克制的态度在这个赛道里不常见。适合谁：做量化研究、需要一个可微调的 K 线预测基线的人；不适合谁：想拿来跑实盘的散户——`finetune/` 里的注释作者标了是 Gemini 2.5 Pro 生成、examples 里混着明显个人未整理的 A 股脚本，离产品还远。真正的实力要读论文看 benchmark，光看代码没法判断它比同类强在哪。最大档 499M 不开源这点要留意。"
 }

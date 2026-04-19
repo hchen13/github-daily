@@ -1,19 +1,24 @@
 {
   "full_name": "NousResearch/hermes-agent",
-  "reviewed_at": "2026-04-19T03:46:15Z",
+  "reviewed_at": "2026-04-19T04:43:24Z",
   "model": "claude-opus-4-7",
-  "duration_s": 87.6,
-  "intro": "Nous Research 出品的自托管 AI agent，目标是让一个跨模型的 agent 常驻在 VPS 或 serverless 环境里，可从 Telegram、Discord、Slack、Signal、CLI 等入口访问，并带技能自学和跨会话记忆。",
+  "duration_s": 77.3,
+  "intro": "Nous Research 出品的自托管 AI agent 框架，一个 Python 进程接入十几种 IM（Telegram/Discord/Slack/飞书/钉钉/微信 等）与几十种 LLM 后端，自带 skills 体系、cron、RL 训练挂钩。",
   "tech_stack": [
-    "Python 3.11+，CLI/运行时单体（run_agent.py、cli.py 均为万行级）",
-    "OpenAI/Anthropic/OpenRouter/Bedrock/Mistral 多 provider 适配",
-    "消息网关：Telegram、Discord、Slack、Matrix、Feishu、Dingtalk",
-    "终端后端：本地、Docker、SSH、Daytona、Singularity、Modal（含 serverless 持久化）",
-    "记忆/技能：FTS5 会话搜索 + Honcho 对话建模 + agentskills.io 技能标准 + MCP/ACP",
-    "语音：faster-whisper + Edge TTS + ElevenLabs（可选）",
-    "RL 数据管线：Atropos 环境 + Tinker（通过 submodule），轨迹压缩模块"
+    "Python 3.11+",
+    "OpenAI / Anthropic SDK + OpenRouter / Bedrock / Mistral 等多厂商适配层",
+    "消息网关：python-telegram-bot、discord.py、slack-bolt、mautrix、lark-oapi、dingtalk-stream",
+    "prompt_toolkit（交互 TUI）、pydantic、httpx、FastAPI 网关",
+    "faster-whisper / edge-tts / elevenlabs（语音）",
+    "Atropos + Tinker（RL 训练，可选）、MCP、Modal / Daytona 云运行时"
   ],
-  "scale": "Python 为主，约 964 个 .py 文件，51 MB，结构上是\"包 + 几个巨型顶级模块\"的混合形态——run_agent.py 12,113 行、cli.py 10,570 行，这两个单文件撑起了运行时和交互入口，其余切到 agent/、tools/（61 个工具文件）、gateway/、environments/、skills/、plugins/ 等子包。版本已到 v0.10.0，带 9 份版本发布 changelog，最近一次 commit 就在前一天，日级维护。tests/ 目录覆盖 acp/gateway/cli/env/honcho 等多个子系统，存在真实测试而非摆设。",
-  "verdict": "严肃工程、研究实验室背书，但体积和单文件行数暴露出明显的沉重工程债，普通用户门槛不低。",
-  "evaluation": "这是今天三个同类项目里工程规模最大的一个——Nous Research 直接把 agent 做成了一个\"跨消息平台 + 跨终端后端 + 跨模型\"的常驻服务，而不是另一个贴着 IDE 的 CLI。真正有意思的点有两层：一是部署形态，Modal/Daytona 的 serverless 持久化让 agent 能在闲置时近乎零成本，醒来继续上下文，这个方向 claude-code 和 codex 都没碰；二是 RL 数据管线，pyproject 里明摆着 Atropos 环境和 trajectory_compressor.py（1483 行），说明 Nous 把这个 agent 当成自家 Hermes 模型的训练数据源来跑，不是纯产品。对多 provider 切换、CVE pinning、Termux/Android 支持的认真程度，也确实不像玩票。硬伤同样明显：run_agent.py 一万两千行、cli.py 一万行，这是十年前 monorepo 大杀器的写法，后续贡献者想改一行都得先读一周；25 个 optional extra 的覆盖面意味着不少集成质量参差，很难全部保证。\"self-improving skills\" 的学习闭环宣传得响，但代码层面究竟跑出多少真实增益得跑了才知道——README 是营销口径，不能当证据。适合谁：想把 agent 放 VPS 跑、从手机聊天触发、或者搞 trajectory 数据的研究者。不适合谁：只想要一个写代码的本地 CLI 的人，相比 claude-code/codex 是拿大炮打蚊子。"
+  "scale": "Python 单语言大型单体仓：964 个 .py 文件、约 45 万行，`run_agent.py` 一个文件 1.2 万行，`cli.py` 1.05 万行，主逻辑高度集中在少数超大文件里。目录结构是多子包（agent / tools / gateway / skills / hermes_cli / cron 等）但不是真正的 monorepo 拆分。测试 50 个目录、pytest-xdist 跑。已发到 v0.10.0，昨天刚合 gateway 竞态 bug 的 fix，维护活跃。",
+  "scale_tag": "大型单体 45 万行",
+  "tech_tags": [
+    "Python 多厂商 agent",
+    "15+ IM 平台网关",
+    "Nous Research"
+  ],
+  "verdict": "Nous Research 把 agent 做成\"跑在 VPS 上、从手机 IM 调\"的产品形态，工程体量大、覆盖面惊人，但核心文件过胖、\"自我进化\"是包装词。",
+  "evaluation": "这是一个严肃的工程项目，不是 wrapper，但也没到它自己宣传得那么\"革命\"。真正值得看的点是**形态选择**——把 agent 从\"IDE 插件 / 笔记本命令行\"搬成\"一个在服务器上常驻、从 Telegram/Discord/飞书/钉钉/微信 跟你对话\"的进程，十几种 IM 的 adapter 都在 `gateway/platforms/` 下真写了，不是 stub；LLM 后端也铺得很全（OpenAI、Anthropic、Bedrock、OpenRouter、NVIDIA NIM、z.ai、Kimi、MiMo 以及 Nous 自家 Portal），切换靠 `hermes model` 无代码改动。这个\"跨 IM + 跨模型\"的覆盖度目前没看到直接对手。skills、cron、子 agent 委派、Atropos/Tinker RL 训练数据生成，也都不是 PPT。门槛不低：自托管、需要自己搞模型 API key、Android 要走 Termux、Windows 只支持 WSL2、消息平台每家都要自己过 setup。需要警惕的硬伤是代码结构：`run_agent.py` 12113 行、`cli.py` 10570 行，一个文件塞一切，后续重构成本会很高；README 里\"self-improving / closed learning loop\"的措辞具体落下来就是 skills 文件的增删，不是权重意义上的学习，别被营销词骗过去。定位是 OpenClaw 的继任者（项目里专门做了迁移命令），适合想\"自己家里跑一个长驻 agent、用 IM 指挥它干活\"的重度用户，不适合只想 IDE 里补全代码的人——那场景 Claude Code / Codex 更直接。"
 }

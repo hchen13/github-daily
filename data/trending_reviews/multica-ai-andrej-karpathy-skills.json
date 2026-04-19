@@ -1,16 +1,23 @@
 {
   "full_name": "multica-ai/andrej-karpathy-skills",
-  "reviewed_at": "2026-04-19T03:45:41Z",
+  "reviewed_at": "2026-04-19T04:42:56Z",
   "model": "claude-opus-4-7",
-  "duration_s": 56.8,
-  "intro": "把 Karpathy 那条吐槽 LLM 写代码毛病的推文整理成四条行为准则，做成 Claude Code 插件和 Cursor 规则两种安装方式，给写 AI agent 提示词的开发者用。",
+  "duration_s": 52.3,
+  "intro": "把 Karpathy 那条关于 LLM 写代码常见毛病的推文，拆成四条行为准则，打包成 Claude Code 插件、Cursor 规则和可直接下载的 CLAUDE.md，给使用 AI 编程助手的开发者用。",
   "tech_stack": [
-    "纯 Markdown（CLAUDE.md / SKILL.md / .mdc）",
-    "Claude Code Plugin 规范（plugin.json + marketplace.json）",
-    "Cursor Project Rules（.cursor/rules/*.mdc）",
-    "无代码、无构建、无依赖"
+    "Markdown（全部内容）",
+    "Claude Code Plugin 规范（`.claude-plugin/plugin.json` + `marketplace.json`）",
+    "Claude Code Skill 规范（`skills/karpathy-guidelines/SKILL.md` with frontmatter）",
+    "Cursor Project Rules（`.cursor/rules/*.mdc`）",
+    "MIT 许可"
   ],
-  "scale": "仓库就是几份 Markdown：1 份 SKILL.md、1 份 CLAUDE.md、1 份 Cursor rule，加 README/EXAMPLES 和两个 JSON 清单，全部不到 40KB。git log 只有一条 squash commit（\"add cursor support #92\"），无历史，看不出长期维护节奏，但 PR 编号 #92 说明上游有些活跃度。",
-  "verdict": "把 Karpathy 推文包成 Claude Code 插件，内容能用，但本质是一份能直接抄进自家 CLAUDE.md 的提示词。",
-  "evaluation": "这是个营销-内容混合体，不是工程项目。技术含量为零——核心产物就是一份 Markdown，把 Karpathy 关于 LLM 写代码常见毛病的观察整理成四条：\"写之前先想 / 优先简单 / 外科手术式改动 / 目标驱动执行\"。值得看的地方是内容本身确实戳到痛点：LLM 静默选择歧义解释、过度抽象、顺手\"改进\"无关代码、目标不可验证导致反复返工——这四点每个用过 Claude Code 写过中型项目的人都遇到过，把它们写下来贴进 CLAUDE.md 大概率能让 diff 干净不少。适合的人：正在自己攒 CLAUDE.md / Cursor rules 的开发者，可以直接抄走，不必装插件。不适合的人：想找 agent 框架、工具链、运行时的——这里没有。门槛只有一个：README 顶部硬塞了作者另一个项目 Multica 的推广，要意识到这是引流落地页，不是中立工具。新意上几乎没有——同类 \"best practices for AI coding\" 的 Markdown collection GitHub 上一搜一堆，这份的优势是短、有出处、且能直接以插件形式分发，仅此而已。"
+  "scale": "纯文档仓库，没有一行代码。四个核心 markdown 文件（`CLAUDE.md` 66 行、`SKILL.md` 68 行、`.mdc` 规则、README 中英双语），加上两份 plugin 元数据 JSON，总字数约 2-3k。目录结构扁平，单 skill 单 plugin。git 历史只有一个 squash commit（2026-04-19，今天），看不出真正的维护节奏——是个刚上架的仓库。",
+  "scale_tag": "纯文档单 Skill",
+  "tech_tags": [
+    "Markdown",
+    "Claude Code Plugin",
+    "Karpathy 推文改编"
+  ],
+  "verdict": "把一条推文包装成三种 IDE 配置，内容薄但切实可复用，适合直接抄进自己的 CLAUDE.md。",
+  "evaluation": "这是个\"把一条推文做成可分发物\"级别的项目，本质是 prompt engineering 合集，而非工程产物。值得看的点有两个：一是它把 Karpathy 原帖里散着的四个抱怨（乱假设、过度工程、顺手改无关代码、缺乏可验证目标）拆成了四条带反例的操作指令，\"Add validation → 先写失败测试再让它过\" 这种 reframe 对喂给 agent 的 system prompt 确实有用；二是同一份内容同时按 Claude Code Plugin、Skill、Cursor `.mdc`、裸 CLAUDE.md 四种方式打包，读一遍就知道三种规范各自怎么写。门槛几乎为零，抄回去就能跑。限制也很明显：总共就 200 来行散文，没有任何 evaluation 证明这些准则真降低了错误率，README 给的\"如何判断在起作用\"全是主观体感；而且 skill 描述和 CLAUDE.md 几乎完全重复，装插件和贴文件效果一样。新意谈不上——类似 \"给 Claude 写规矩\" 的仓库 GitHub 上能翻出几十个——但把 Karpathy 原文直接拎出来作权威锚点，是它比其他同类更容易被 trending 推上来的原因。合适做法：把那四条拷进自己项目的 CLAUDE.md，不用装插件。"
 }

@@ -85,11 +85,18 @@ def _render_card(repo: dict, review: dict, rank_label: str,
     verdict = review.get("verdict") or ""
 
     chips_html = (
-        f'<span class="chip">{escape(language)}</span>'
         f'<span class="chip">★ {_format_stars(stars)}</span>'
     )
     if delta:
         chips_html += f'<span class="chip delta">{escape(delta)} {delta_suffix}</span>'
+    scale_tag = (review.get("scale_tag") or "").strip()
+    if scale_tag:
+        chips_html += f'<span class="chip scale">{escape(scale_tag)}</span>'
+    tech_tags = review.get("tech_tags") or []
+    if not tech_tags and language and language != "—":
+        tech_tags = [language]
+    for tag in tech_tags[:3]:
+        chips_html += f'<span class="chip tech">{escape(tag)}</span>'
 
     owner, _, name = full_name.partition("/")
     name_html = (

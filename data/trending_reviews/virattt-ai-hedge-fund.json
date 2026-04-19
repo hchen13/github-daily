@@ -1,17 +1,24 @@
 {
   "full_name": "virattt/ai-hedge-fund",
-  "reviewed_at": "2026-04-19T03:49:31Z",
+  "reviewed_at": "2026-04-19T04:48:21Z",
   "model": "claude-opus-4-7",
-  "duration_s": 133.9,
-  "intro": "一个用 LangGraph 编排 19 个\"投资人\"智能体（巴菲特、芒格、Burry、Cathie Wood、Taleb 等）辩论选股的多 agent 框架，带 CLI、FastAPI 后端和 ReactFlow 可视化前端，作者明确标注仅用于教育演示，不实际下单。",
+  "duration_s": 204.7,
+  "intro": "一个把 19 位名人投资者（巴菲特、芒格、Burry、Taleb、Cathie Wood 等）做成 LangGraph Agent、各自给出 bullish/bearish 信号、最后由组合经理综合下单的模拟交易系统，自述仅供学习，不实际下单。",
   "tech_stack": [
-    "Python 3.11，LangGraph 0.2.56 + LangChain 0.3（OpenAI / Anthropic / Groq / DeepSeek / Gemini / xAI / Ollama / GigaChat 全家桶）",
-    "FastAPI + SQLAlchemy + Alembic（SQLite/Postgres，已有 5 个迁移脚本）",
-    "React 18 + Vite + TypeScript + Tailwind + shadcn/ui + @xyflow/react（流程图式 agent 编排界面）",
-    "Financial Datasets API（唯一行情/财务数据源，付费）",
-    "Poetry / Docker Compose 打包"
+    "Python 3.11 + Poetry",
+    "LangChain / LangGraph（多 LLM：OpenAI、Anthropic、Groq、DeepSeek、Gemini、xAI、Ollama）",
+    "FastAPI + SQLAlchemy + Alembic（app/backend）",
+    "React 18 + Vite + TypeScript + shadcn-ui + @xyflow/react（流程图 UI）",
+    "financialdatasets.ai（唯一行情/财报数据源）",
+    "pandas / numpy / scipy（v2 量化骨架）"
   ],
-  "scale": "中型 monorepo，三套并行的代码树：`src/`（56 个 .py，CLI 推理引擎 + 回测器 + 19 个 agent，每个 agent 独立文件 200-600 行）、`app/`（backend 34 个 .py + frontend 109 个文件的完整全栈）、`v2/`（21 个文件的量化重写，作者自承 WIP）。Shallow clone 只能看到 1 次 commit（2026-04-17），无法从本地判断维护频率，但 app/backend 的 alembic 版本链和 v2 的预留目录表明作者在持续演进。black 行宽设成 420 这种细节能看出是个人项目风格。",
-  "verdict": "19 个名人 agent 是噱头，但作为 LangGraph + 全栈 + 可视化编排的完整参考实现，工程骨架比噱头值钱。",
-  "evaluation": "判断先行：这是一个做得比一般\"玩具\"更认真的教育级项目，但离\"AI 对冲基金\"还差十个数量级——作者自己在 README 第一句和免责声明里都承认了。值得看的地方有三点。一是 LangGraph 的编排范式示范得很清楚：每个 agent 就是一个独立 Python 文件，Pydantic 定义 signal schema（bullish/bearish/neutral + 0-100 置信度 + reasoning），Risk Manager 做仓位约束、Portfolio Manager 做最终合并，这套结构几乎可以照搬去做任何\"多专家投票\"类应用。二是全栈示范：FastAPI + Alembic 版本化数据库 + React Flow 做 agent 图形化拖拽编排，不是喊口号，代码都在。三是 `v2/` 目录——作者显然意识到\"19 个投资大师人格\"经不住推敲，正在用 CPCV、PBO、Almgren-Chriss、Black-Litterman、风险平价这套严肃量化工具重写底层，这个 v2 如果做成了比现在的 v1 有意思得多。硬伤也得说清：人格化 prompt 不等于投资纪律，Buffett agent 给出\"bullish 85% 置信\"在统计意义上毫无约束力；数据源锁死在 financialdatasets.ai（付费 API）使得复现门槛比看上去高。适合想学 LangGraph / 多 agent 编排 / 全栈 AI 应用骨架的开发者抄结构；不适合任何打算把它当交易系统跑的人——包括看到这 24k stars 数字心动的散户。相比同类 LLM 炒股项目（FinGPT、TradingGPT），新意主要在工程完成度和 v2 的诚实转向，而非算法本身。"
+  "scale": "Python 为主，前端 TS/TSX。src/ 约 56 个 py 文件、核心在 agents/ 目录下的 19 个投资人 Agent，单文件 300–850 行不等（Buffett 826、Munger 856、Taleb 761），合计近 1 万行；app/backend 是一套完整 FastAPI + SQLAlchemy + Alembic，app/frontend 144 个 TS/TSX 文件，用 React Flow 做 Agent 编排可视化；v2/ 是作者自己开的\"去人格化、改量化\"的重写分支，README 明说 WIP，大部分目录只有 base.py/engine.py 一两个占位文件。仓库在持续更新，最后一次提交就在两天前；测试只覆盖 API 限流和缓存，总共两个文件 400 行。pyproject 里 `black line-length = 420` 这种设置透露出代码风格很随意。",
+  "scale_tag": "中型全栈 ~15k 行",
+  "tech_tags": [
+    "LangGraph 多 Agent",
+    "FastAPI + React Flow",
+    "教育用 PoC"
+  ],
+  "verdict": "把名人投资哲学映射成 LLM Agent 的教学玩具，工程完成度不低但离\"真能赚钱\"很远，作者自己已经在 v2 里推翻重做。",
+  "evaluation": "这是个规模不小、做得很认真的教学型 PoC，不是单纯的 prompt wrapper。每个名人 Agent 都不是\"让 GPT 扮演巴菲特\"那种糊弄——Buffett 文件里真的有 ROE/负债率/毛利一致性/护城河/内在价值计算的启发式打分，Taleb 文件里会去拉一年价格序列算尾部和凸性，再把结构化分数喂给 LLM 产出 bullish/bearish/confidence。LangGraph 把 19 个 Agent + 风险 + 组合经理串成有向图，前端用 React Flow 做可视化编排，整套 FastAPI+SQLAlchemy+Alembic 后端配 shadcn 前端都搭齐了，放眼同类\"AI 炒股\"项目里工程完整度排得上号。\n\n真正值得看的有两点：一是**把\"投资人哲学\"结构化成可执行打分函数**的这份代码本身，对想学价值投资指标怎么落地的人是现成教材；二是作者自己在 `v2/` 里写了篇小宣言——\"人格化是错的，要换成 CPCV、PBO、Black-Litterman、Almgren-Chriss\"——这份元认知比成品更有意思，虽然 v2 目前只有几个空壳文件。\n\n不适合的人群很明确：想直接跑出来赚钱的——README 首段就写了不真实下单，单一数据源 financialdatasets.ai 是付费 API，没有任何经过严肃回测验证的 alpha 证据，测试覆盖率几乎为零（只测了限流和缓存）。**名人 Agent 这套范式在量化圈属于 meme 级别**，把 19 个名人塞进流程图更多是内容营销而非方法论创新；作者自己都承认要推翻。当教学项目和 LangGraph 示例看，价值充足；当投资基础设施看，直接跳过。"
 }

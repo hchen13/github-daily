@@ -360,6 +360,17 @@ body {
   background: rgba(0, 113, 227, 0.08);
   color: var(--apple-blue);
 }
+.publication .chip.scale {
+  background: rgba(48, 184, 82, 0.10);
+  color: #1f7a39;
+  font-weight: 600;
+}
+.publication .chip.tech {
+  background: transparent;
+  border: 1px solid #dfdfe6;
+  color: var(--gray-80);
+  font-weight: 500;
+}
 .publication p.trending-intro {
   margin: 0 0 10px;
   font-size: 14.5px;

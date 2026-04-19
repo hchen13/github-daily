@@ -1,18 +1,24 @@
 {
   "full_name": "multica-ai/multica",
-  "reviewed_at": "2026-04-19T03:47:23Z",
+  "reviewed_at": "2026-04-19T04:44:27Z",
   "model": "claude-opus-4-7",
-  "duration_s": 98.3,
-  "intro": "一个把 Claude Code/Codex/Gemini/Cursor Agent 等编码 Agent 当成团队成员、按 issue 分配任务并追踪执行的开源协作平台，定位是 \"给 AI-native 小团队用的 Linear\"。",
+  "duration_s": 88.0,
+  "intro": "一个把编码 agent 当团队成员调度的 Kanban 式平台：在看板上给 Claude Code / Codex / OpenClaw / Hermes / Gemini / Cursor Agent 等 CLI 分派 issue，本地 daemon 拉代码、跑 CLI、回传进度，给多人团队用。",
   "tech_stack": [
-    "Go 1.26 后端（Chi router + sqlc + gorilla/websocket）",
+    "Go 1.26（Chi、sqlc、gorilla/websocket、pgx/v5、Cobra）",
+    "Next.js 16 App Router + shadcn/Base UI",
+    "Electron 桌面端（electron-vite）",
     "PostgreSQL 17 + pgvector",
-    "Next.js 16（App Router）前端",
-    "Electron 39 桌面端（electron-vite）",
-    "pnpm catalog + Turborepo monorepo",
-    "本地 daemon（cobra CLI），拉起本机 agent CLI 执行任务"
+    "pnpm workspaces + Turborepo，packages 切 core/ui/views",
+    "AWS S3 / SecretsManager、Resend 邮件、JWT"
   ],
-  "scale": "典型 monorepo：`apps/{web,desktop,docs}` + `packages/{core,ui,views,...}` + Go `server/`，约 455 个 TS/TSX + 193 个 Go 源文件，124 条有序 SQL migration，最新 commit 是 PR #1322。浅克隆看不到完整历史，但 PR 号和 migration 数足以判断这是长期演进、当下仍很活跃的中大型项目，结构成熟度属于\"产品级\"。",
-  "verdict": "严肃工程，Linear 式 AI agent 协作平台，要自托管得准备 Postgres+daemon+Docker 一整套，门槛不低。",
-  "evaluation": "这是个真工程，不是 wrapper。后端 Go + Chi + sqlc + pgvector + WebSocket，前端 Next.js 16，桌面端 Electron，前后端之间还有一个 cobra 写的本地 daemon，负责在用户机器上拉起 claude/codex/opencode/gemini/cursor-agent 等 CLI 执行任务——职责切得很干净。最有意思的点是把 \"agent 当队员\" 这个产品定位真落到了数据模型上：task 有完整生命周期（enqueue/claim/start/complete/fail），agent 有 profile、能评论、能被 @、能创建 issue，Skills 还单独做了结构化 migration 做持久复用；配 pgvector 做检索也合理。124 条 migration 说明数据模型在反复打磨，不是一锤子 demo。门槛客观存在：Postgres17+pgvector、Docker、Go 1.26、Node 20+、daemon 必须常驻才能跑 agent，自托管整套栈不是 `docker compose up` 就完事，fork 改造成本也不低。适合 2–10 人 AI-native 小队想统一看板管多个编码 agent 的场景；只想要个\"多 agent 终端\"的用户别来，过重。新意上：和 Paperclip 那种单人 agent 模拟器明确区分开，issue-驱动调度 + 多 runtime + skill 复用这个组合当前不算拥挤，但\"agent 真的能像队员一样 set and forget\"这点代码里看不出效果强度——得实际派任务跑一周才知道，暂时看不准。"
+  "scale": "monorepo。server 端约 193 个 Go 文件（handler 层 15k 行、daemon+service 层 5k 行），前端 apps/packages 合计约 464 个 TS/TSX，48 条 SQL migration。包边界在 CLAUDE.md 里写得很死（core 禁 react-dom、ui 禁业务逻辑、views 禁 next/\\*），属于在内部跑过一段时间、一次性 squash 开源的成熟代码。维护状态看不准——整个 git 历史只有一条 2026-04-18 的 initial commit，没有增量可评。",
+  "scale_tag": "monorepo 多栈中型",
+  "tech_tags": [
+    "Go + Next.js 16",
+    "多 CLI agent 编排",
+    "修改版 Apache 2.0"
+  ],
+  "verdict": "工程完整度看得出是内部产品整包开源，定位不新，但\"一个看板统管八种 agent CLI\"这个点对多 agent 用户确实有用。",
+  "evaluation": "定性先说：不是玩具，是一家叫 multica-ai 的公司把内部 SaaS 砸出来做开源引流，cloud-first + 自托管选项的开源核心模式。证据很硬——48 条有序的 schema migration、切得很干净的 monorepo、handler 层光一个 workspace.go 就 600 行、CLAUDE.md 和 HANDOFF_ARCHITECTURE_AUDIT.md 里写死了包依赖方向——这些东西都不是临时做出来的。值得看的是 daemon 那块：本地进程自动探测八种 agent CLI（claude / codex / openclaw / opencode / hermes / gemini / pi / cursor-agent），通过 workspace 级 repo cache 发 shallow clone，把 issue ID 注进 prompt 让 CLI 自己 `multica issue get` 回读任务——这是一套可复用的 agent 编排壳，对同时在用多个 CLI 的人是真有价值的抽象。不适合的人：想要本地轻量化工具的（要 Docker + Postgres + pgvector + Next.js + Go 后端，自托管门槛不低）、介意\"hosted service 要另买商业 license\"修改条款的。新意评估：Linear-ish 看板 + AI assignee 这个概念 Paperclip、Sweep、Factory、GitButler 都在做，Multica 自己也把 Paperclip 拉进 README 做了对比——核心差异点就是团队协作 + vendor-neutral 的 CLI 池。单 commit squash 开源让外人无法判断代码稳定性和团队节奏，要真上生产建议先锁版本跑几周再说。"
 }

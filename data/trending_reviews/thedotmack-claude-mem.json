@@ -1,18 +1,24 @@
 {
   "full_name": "thedotmack/claude-mem",
-  "reviewed_at": "2026-04-19T03:47:06Z",
+  "reviewed_at": "2026-04-19T04:45:03Z",
   "model": "claude-opus-4-7",
-  "duration_s": 74.7,
-  "intro": "给 Claude Code 用的会话记忆插件：用生命周期 hook 抓取工具调用和对话，用 SQLite + Chroma 做本地存储与检索，让新会话启动时自动注入过往上下文。",
+  "duration_s": 105.2,
+  "intro": "给 Claude Code 装一套持久化记忆：通过生命周期 hook 把会话观察写入本地 SQLite + Chroma 向量库，下次会话以 MCP 工具按需检索。",
   "tech_stack": [
-    "TypeScript（node ≥18，同时支持 Bun 运行时）",
-    "Anthropic Agent SDK + MCP SDK（`@modelcontextprotocol/sdk`，暴露 search/timeline/get_observations 三个 MCP 工具）",
-    "SQLite（FTS5 全文检索）+ Chroma 向量库（混合语义+关键字检索）",
-    "Bun 管理的本地 worker 服务（HTTP on :37777，含 React 18 Web Viewer UI）",
-    "一大批 tree-sitter 语法（bash/c/cpp/go/java/js/py/ruby/rust/ts/swift/kotlin/php/elixir/haskell/scala 等，用于代码结构解析）",
-    "多 IDE 适配：Claude Code 插件、Gemini CLI、OpenCode、Cursor、OpenClaw Gateway"
+    "TypeScript + Node.js 18+（Bun 做 worker 运行时）",
+    "@anthropic-ai/claude-agent-sdk + @modelcontextprotocol/sdk",
+    "SQLite（bun:sqlite，FTS5 全文）+ Chroma 向量库混合检索",
+    "Express HTTP worker（:37777）+ SSE 广播",
+    "React 18 Web viewer（viewer-template.html）",
+    "esbuild 打包，插件以 Claude Code plugin / npx CLI 双形态分发"
   ],
-  "scale": "TypeScript 为主，`src/` 下约 214 个 `.ts` 文件、算上 `plugin/`、`tests/`、`scripts/` 共 330+ 源文件，`src` 3.3M，`plugin` 65M（含打包产物），中大型单仓多目录结构（`src/` + `plugin/` + `openclaw/` + `ragtime/` + `scripts/` + `docs/` 并列）。CHANGELOG 5700+ 行、版本号 12.2.0、最近一次发布 2026-04-18，迭代非常密集且维护明确活跃。",
-  "verdict": "Claude Code 生态里做得最认真的一个本地记忆方案，工程完整度高但依赖链也最长。",
-  "evaluation": "这是严肃工程，不是玩具。版本号都推到 12.2 了、CHANGELOG 近六千行、最近一版刚在 4-18 发布并修了 Claude Code 2.1.109+ 的一个真实回归 bug（SDK 把 `--setting-sources \"\"` 传空串、吃掉了下一个 flag），能写出这种级别 post-mortem 的项目水准不会低。值得看的点有几个：一是七个生命周期 hook 全占满（Setup/SessionStart/UserPromptSubmit/PreToolUse/PostToolUse/Stop/SessionEnd），把\"记忆\"真正嵌进 Claude Code 的工作流而不是外挂一个 MCP server；二是 MCP 工具设计的三层渐进披露（search 拿索引 → timeline 看时序 → get_observations 按 ID 拉全文），号称比朴素 RAG 省 10 倍 token，这个思路对任何做 agent 记忆的人都值得借鉴；三是 SQLite FTS5 + Chroma 向量的混合检索，不做全托管云服务、数据留在本地 `~/.claude-mem/`。不适合谁也清楚：不想装 Bun、uv、Chroma、还要一个常驻 :37777 端口 worker 的人直接跳过；AGPL-3.0 对要商用集成的团队是硬门槛。新意上，同赛道有 mem0、Letta/MemGPT、Graphiti，但专门为 Claude Code 生命周期 hook 做深度集成的目前就是它，加上已经扩到 Gemini CLI / Cursor / OpenClaw，生态位抢得比较稳。硬要挑刺的话，`hooks.json` 里那种巨长 shell 一行流、每次 PostToolUse 都 spawn 子进程的架构在大会话下延迟开销不小，需要用起来才知道代价。"
+  "scale": "TypeScript 为绝对主力，src/ 约 4.7 万行、plugin/ 脚本层约 5k 行、openclaw/ragtime 两个子包各自独立，外加 ~240 个源文件和 39 个测试目录——是标准的中型 monorepo 结构。维护极度活跃：当前 v12.2.0，CHANGELOG 显示从 2026-02 到 2026-04 发了 30+ 个版本，4 月单月就有 8 个发布，最近一次提交在三天内。",
+  "scale_tag": "中型多栈 monorepo",
+  "tech_tags": [
+    "TypeScript + Bun",
+    "MCP + SQLite/Chroma",
+    "Claude Code 插件"
+  ],
+  "verdict": "严肃工程的 Claude Code 记忆层，架构清晰、迭代凶猛，但安装会拉起本地常驻 worker、Bun、uv、向量库，门槛不算低。",
+  "evaluation": "这是一个认真在做的工程项目，不是 wrapper。看源码能看出几个真东西：MCP server 只做 stdio 协议转发，业务逻辑全部走本地 :37777 worker（Express + SSE），SQLite 层有正经的 migrations/FTS5/timeline service，向量检索走 Chroma + SQLite 混合策略，还把 search 切成\"索引 → 时间轴 → 全文\"三层——这个 token 成本意识在同类记忆插件里算少见。代码组织、测试覆盖（39 个测试目录，涵盖 hook 生命周期、SQLite、SDK agent、worker spawn）、多 agent backend（SDK/Gemini/OpenRouter fallback）都说明作者知道自己在做什么。发版节奏吓人，两个月 30+ 版本、刚完成 v11→v12 大重构，好处是 bug 修得快，坏处是锁版本得谨慎，每次升级 breaking 概率不低。门槛方面诚实说：要跑 Bun、装 uv、起本地 Python 向量库、占端口 37777，还有 AGPL-3.0 这个许可证，企业场景绕不过去。适合重度 Claude Code 用户自己装来试；团队或合规环境先看清 AGPL 再决定。新意不是\"记忆\"本身——这个方向已经有一堆人做——而是三层渐进检索和 hook + worker 分离的工程化程度。"
 }

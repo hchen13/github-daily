@@ -1,18 +1,24 @@
 {
   "full_name": "microsoft/markitdown",
-  "reviewed_at": "2026-04-19T03:47:22Z",
+  "reviewed_at": "2026-04-19T04:45:13Z",
   "model": "claude-opus-4-7",
-  "duration_s": 80.0,
-  "intro": "微软维护的通用文件转 Markdown 工具，覆盖 PDF、Office、图片、音频、YouTube、Outlook .msg 等十几种格式，定位是喂给 LLM 前的文档预处理管道。",
+  "duration_s": 107.6,
+  "intro": "微软 AutoGen 团队出品的 Python 工具库，把 PDF/Office/HTML/音图/YouTube 等常见文件统一转成 Markdown，面向 LLM 前置管线和 RAG 预处理场景。",
   "tech_stack": [
-    "Python 3.10+（MIT，hatchling 构建）",
-    "magika（文件类型识别）+ markdownify（HTML→MD）",
-    "pdfminer.six / pdfplumber / mammoth / python-pptx / openpyxl（各格式上游）",
-    "Azure Document Intelligence（可选云端后端）",
-    "MCP SDK（独立子包 markitdown-mcp）",
-    "entry_points 插件机制（markitdown-ocr 以此挂入）"
+    "Python 3.10+（hatchling 打包，monorepo 四包）",
+    "核心依赖：beautifulsoup4、markdownify、magika（mimetype 探测）、charset-normalizer、defusedxml",
+    "格式适配：pdfminer.six + pdfplumber、python-pptx、mammoth、openpyxl/pandas、olefile、pydub、youtube-transcript-api",
+    "可选 Azure AI Document Intelligence（企业 PDF）",
+    "MCP server 子包（`mcp~=1.8.0`）",
+    "entry_points 插件机制（`markitdown.plugin` group）"
   ],
-  "scale": "Python monorepo，四个包（核心 markitdown + MCP server + OCR 插件 + sample plugin），约 69 个 .py 文件，converters 目录合计 ~3300 行——每种格式一个转换器。测试挑了 PDF 内存、主格式、表格等易炸点。issue 编号到 #1644，最新 commit 2026-04-15 修深嵌套 HTML 的 RecursionError，维护活跃。",
-  "verdict": "微软维护的多格式文档→Markdown 管道，MCP、插件、云端 OCR 后端配齐，LLM 文档预处理场景里完成度最高的一个。",
-  "evaluation": "严肃工具，不是新鲜玩具。核心价值是一个 API 吃下十几种格式，直接吐 LLM 友好的 Markdown。架构上值得看两点：entry_points 插件机制（markitdown-ocr 就是独立包挂进来的），以及内置 markitdown-mcp 子包，Claude Code / Cursor 能直接拉起来当 MCP server 用。每个转换器都是 pdfminer / mammoth / python-pptx 这类上游库的薄包装，天花板取决于上游——复杂表格和扫描件 PDF 别指望它变魔术，要 OCR 就走插件或 Azure Document Intelligence 后端。issue 到 #1644、最新补丁刚修深嵌套 HTML 的 RecursionError，在用在修。适合批量把杂格式文档塞进 RAG 或 agent 上下文的团队；想一站式搞定扫描件和复杂版面的，另找专用解析。新意上不算突破，但覆盖面、MCP 集成、微软长期维护三样凑齐，同类里最省心的选择。"
+  "scale": "Python monorepo，四个子包：`markitdown` 核心（~4.6k 行，含 20+ 个 converter，单个 PDF converter 近 600 行）、`markitdown-mcp`（薄 MCP server 壳，~140 行）、`markitdown-ocr`（LLM vision OCR 插件，~2k 行）、`markitdown-sample-plugin`。全仓约 1.1 万行 Python。结构成熟：统一的 `DocumentConverter` ABC（accepts/convert 两方法，流式不落盘），带优先级注册表、插件发现、完整 tests 目录。版本 0.1.6b2，仍标 Beta，最新 commit 2026-04-15（HTML 递归栈溢出修复 #1644），维护活跃。",
+  "scale_tag": "中型 monorepo ~11k 行",
+  "tech_tags": [
+    "Python",
+    "20+ 格式转换器",
+    "MCP server"
+  ],
+  "verdict": "LLM 文件预处理里最务实的那一类工具，结构干净、格式覆盖全，但 PDF 精度受限于传统解析器。",
+  "evaluation": "严肃工程，不是玩具。微软 AutoGen 团队的亲儿子，API 设计能看出做过几轮：`DocumentConverter` 的 accepts/convert 分离、优先级注册、0.1.0 那次把路径改成 BinaryIO stream（README 明写的 breaking change）——这些都是跑过真实场景才会做的决定。用 magika 做 mimetype 探测、用 entry_points 暴露插件组、MCP server 单拆一个子包，该解耦的都解耦了。覆盖广度很扎实：PDF/Office 三件套/EPUB/msg/zip/ipynb/YouTube/Wikipedia/Bing SERP/RSS 全有，OCR 和 Azure Document Intelligence 走可选依赖，不绑架核心。真正的限制在 PDF——默认管线是 pdfminer.six + pdfplumber，扫描件和复杂版式基本无能为力，要精度就得上 `markitdown-ocr`（LLM vision，烧 token）或 Azure DI（烧钱）。和 Docling 那种上 layout 模型的路线比，它走的是\"轻量+格式多\"而不是\"PDF 精度\"。适合做 RAG/agent 前置清洗、吞吐量优先的场景；做法律/财务那种需要版面保真的扫描文档，不适合。插件机制清晰，想扩自己的格式很容易接。版本号还卡在 0.1.6b2 Beta，短期内 API 可能还会动。"
 }
