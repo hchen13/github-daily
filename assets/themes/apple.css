@@ -44,46 +44,129 @@ body {
 }
 
 .publication {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 80px 40px 96px;
+  padding: 0 40px 96px;
+  counter-reset: section;
 }
 
-/* === Title (H1) === */
+/* === Masthead: dense logo+wordmark lockup left, edition+date right === */
+.publication .masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0 20px;
+  border-top: 6px solid var(--black);
+  border-bottom: 1px solid var(--black);
+  margin: 40px 0 14px;
+}
+.publication .masthead-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+.publication .masthead-logo {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  margin: 0;
+  flex-shrink: 0;
+}
+.publication .masthead-wordmark { min-width: 0; }
+.publication .masthead-kicker {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: var(--gray-48);
+  margin-bottom: 4px;
+}
+.publication .masthead-title {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  line-height: 1.05;
+  color: var(--black);
+}
+.publication .masthead-right {
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.publication .masthead-edition {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gray-48);
+  margin-bottom: 4px;
+}
+.publication .masthead-date {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--black);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+/* Markdown-level H1 + blockquote are now redundant with the masthead flag. */
+.publication > h1:first-of-type {
+  display: none;
+}
+.publication > h1:first-of-type + blockquote {
+  display: none;
+}
+
+/* Unused H1 rules kept as safety for any inline H1 elsewhere in the body. */
 .publication h1 {
   font-family: var(--font-display);
-  font-size: 52px;
-  font-weight: 600;
-  line-height: 1.07;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.1;
   letter-spacing: -0.4px;
   color: var(--black);
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 
-/* Subtitle blockquote (e.g. "> 辛哥的开源风向") */
 .publication blockquote {
-  font-size: 19px;
-  font-weight: 400;
-  color: var(--gray-48);
-  letter-spacing: -0.19px;
-  margin-bottom: 56px;
-  border: none;
+  font-size: 17px;
+  color: var(--gray-80);
+  border-left: 3px solid var(--border);
+  padding-left: 16px;
+  margin: 16px 0;
 }
-.publication blockquote p {
-  margin: 0;
-}
+.publication blockquote p { margin: 0; }
 
-/* === Sections (H2) === */
+/* === Sections (H2) with magazine-style kicker number === */
 .publication h2 {
+  counter-increment: section;
   font-family: var(--font-display);
-  font-size: 30px;
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.32px;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.34px;
   color: var(--black);
   margin: 64px 0 20px;
-  padding-top: 28px;
+  padding-top: 36px;
   border-top: 1px solid var(--border);
+}
+.publication h2::before {
+  content: "NO. " counter(section, decimal-leading-zero);
+  display: block;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--apple-blue);
+  margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
 }
 .publication h2:first-of-type {
   border-top: none;
@@ -380,8 +463,8 @@ body {
 /* === Weekly Trending Top 10 (opus-backed list) === */
 .publication .trending-list {
   margin: 16px 0 28px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 .publication .trending-entry {
@@ -547,7 +630,7 @@ body {
 
 /* === Footer (rendered separately by the shell) === */
 .publication-footer {
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 0 40px 48px;
   font-size: 12px;
@@ -567,16 +650,32 @@ body {
   }
   .publication {
     max-width: none;
-    padding: 30mm 20mm 25mm;
+    padding: 18mm 20mm 25mm;
   }
-  .publication h1 {
-    font-size: 36px;
+  .publication .masthead {
+    margin: 0 0 18px;
+    padding: 12px 0 10px;
+    border-top-width: 4px;
+    gap: 14px;
   }
+  .publication .masthead-left { gap: 12px; }
+  .publication .masthead-logo { width: 48px; height: 48px; }
+  .publication .masthead-kicker,
+  .publication .masthead-edition { font-size: 8px; letter-spacing: 0.28em; margin-bottom: 2px; }
+  .publication .masthead-title { font-size: 22px; }
+  .publication .masthead-date { font-size: 13px; }
   .publication h2 {
     font-size: 22px;
     margin: 36px 0 14px;
-    padding-top: 18px;
+    padding-top: 22px;
     page-break-after: avoid;
+  }
+  .publication h2::before {
+    font-size: 9px;
+    margin-bottom: 4px;
+  }
+  .publication .trending-list {
+    grid-template-columns: 1fr;
   }
   .publication h3 {
     font-size: 16px;
@@ -604,11 +703,20 @@ body {
 /* === Mobile === */
 @media (max-width: 720px) {
   .publication {
-    padding: 48px 20px 64px;
+    padding: 0 20px 64px;
   }
-  .publication h1 {
-    font-size: 36px;
+  .publication .masthead {
+    margin: 24px 0 28px;
+    padding: 14px 0 12px;
+    border-top-width: 6px;
+    gap: 14px;
   }
+  .publication .masthead-left { gap: 12px; }
+  .publication .masthead-logo { width: 52px; height: 52px; }
+  .publication .masthead-kicker,
+  .publication .masthead-edition { font-size: 9px; letter-spacing: 0.28em; }
+  .publication .masthead-title { font-size: 24px; }
+  .publication .masthead-date { font-size: 15px; }
   .publication h2 {
     font-size: 24px;
   }
@@ -616,6 +724,9 @@ body {
     font-size: 12px;
   }
   .publication .activity-grid {
+    grid-template-columns: 1fr;
+  }
+  .publication .trending-list {
     grid-template-columns: 1fr;
   }
 }

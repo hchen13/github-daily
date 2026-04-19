@@ -16,6 +16,7 @@ Run:
 from __future__ import annotations
 
 import argparse
+import base64
 import logging
 import sys
 from datetime import date
@@ -32,8 +33,17 @@ logger = logging.getLogger("renderer")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ASSETS_DIR = PROJECT_ROOT / "assets" / "themes"
+LOGO_PATH = PROJECT_ROOT / "assets" / "logo" / "xinge.png"
 PUBLICATIONS_DIR = PROJECT_ROOT / "data" / "publications"
 RENDERS_DIR = PROJECT_ROOT / "data" / "renders"
+
+
+def _logo_data_uri() -> str:
+    if not LOGO_PATH.exists():
+        return ""
+    raw = LOGO_PATH.read_bytes()
+    mime = "image/png" if raw[:8] == b"\x89PNG\r\n\x1a\n" else "image/jpeg"
+    return f"data:{mime};base64,{base64.b64encode(raw).decode('ascii')}"
 
 
 def md_to_html_body(md_text: str) -> str:
@@ -58,6 +68,8 @@ def build_html(md_text: str, title: str, target_date: date) -> str:
         shell
         .replace("{{TITLE}}", title)
         .replace("{{CSS}}", css)
+        .replace("{{LOGO_URI}}", _logo_data_uri())
+        .replace("{{DATE}}", target_date.strftime("%Y · %m · %d"))
         .replace("{{BODY}}", body)
         .replace("{{CHART_SCRIPT}}", js)
     )
