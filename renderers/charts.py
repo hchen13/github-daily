@@ -47,8 +47,15 @@ REPO_COLORS: list[str] = [
 
 
 def fetch_all_series(repos: Sequence, end_date: date, db_path: str) -> tuple[dict, list[str]]:
-    """Return ({metric: {repo_full_name: [c_d-6..c_d0]}}, [7 day labels])."""
-    days = [(end_date - timedelta(days=n)).isoformat() for n in range(6, -1, -1)]
+    """Return ({metric: {repo_full_name: [c_d-7..c_d-1]}}, [7 day labels]).
+
+    Window is the 7 full days ending **yesterday**, not the 7 days ending
+    today. Today's bucket is always partial — data is in UTC while
+    ``end_date`` is local, and the pipeline usually runs before today's
+    UTC day has even started, so the rightmost column would otherwise
+    show ~0 for everything.
+    """
+    days = [(end_date - timedelta(days=n)).isoformat() for n in range(7, 0, -1)]
     out: dict[str, dict[str, list[int]]] = {m: {} for m, *_ in METRICS}
     with get_db(db_path) as conn:
         for repo in repos:
@@ -123,19 +130,25 @@ def _line_chart_svg(
         full_name = repo.full_name
         series = series_by_repo.get(full_name, [0] * n)
         color = REPO_COLORS[idx % len(REPO_COLORS)]
-        pts: list[str] = []
+        # Compute points once, render polyline then dots.
+        xy: list[tuple[float, float]] = []
         for i, v in enumerate(series):
             x = margin_left + i * step
             y = margin_top + plot_h - (v / scale) * plot_h
-            pts.append(f"{x:.1f},{y:.1f}")
+            xy.append((x, y))
+        pts_str = " ".join(f"{x:.1f},{y:.1f}" for x, y in xy)
         parts.append(
-            f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" '
+            f'<polyline points="{pts_str}" fill="none" stroke="{color}" '
             f'stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>'
         )
-        # End-point dot
-        last_x = margin_left + (n - 1) * step
-        last_y = margin_top + plot_h - (series[-1] / scale) * plot_h
-        parts.append(f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="2.5" fill="{color}"/>')
+        # Hover-target dot per data point with a native SVG <title> tooltip.
+        for i, ((x, y), v) in enumerate(zip(xy, series)):
+            parts.append(
+                f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" fill="{color}" '
+                f'fill-opacity="{1.0 if i == len(xy) - 1 else 0.85}">'
+                f'<title>{repo.display_name} · {days[i][5:]} · {v}</title>'
+                f'</circle>'
+            )
 
     return (
         f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid meet" '

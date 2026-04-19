@@ -132,23 +132,27 @@ body {
 .publication .activity-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 8px 20px;
   margin-bottom: 14px;
-  font-size: 12px;
+  padding: 10px 14px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--gray-80);
-  letter-spacing: -0.12px;
+  color: var(--black);
+  letter-spacing: -0.13px;
 }
 .publication .legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .publication .legend-item .swatch {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: 0 0 12px;
 }
 .publication .activity-grid {
   display: grid;
@@ -161,17 +165,24 @@ body {
   padding: 14px 16px 10px;
 }
 .publication .chart-title {
-  font-family: var(--font-text);
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 15px;
   font-weight: 600;
-  color: var(--gray-80);
-  margin-bottom: 4px;
-  letter-spacing: -0.12px;
+  color: var(--black);
+  margin-bottom: 8px;
+  letter-spacing: -0.15px;
 }
 .publication .activity-chart {
   display: block;
   width: 100%;
   height: auto;
+}
+.publication .activity-chart circle {
+  cursor: default;
+  transition: r 0.1s ease-out;
+}
+.publication .activity-chart circle:hover {
+  r: 4.5;
 }
 
 /* === Tables (trending top 10) === */
