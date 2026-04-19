@@ -290,6 +290,108 @@ body {
   border-bottom: none;
 }
 
+/* === Weekly Trending Top 10 (opus-backed list) === */
+.publication .trending-list {
+  margin: 16px 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.publication .trending-entry {
+  background: var(--white);
+  border: 1px solid #ebebef;
+  border-radius: 12px;
+  padding: 16px 20px 14px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.publication .trending-entry:hover {
+  border-color: #dfdfe6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+.publication .trending-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.publication .trending-rank {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-48);
+  min-width: 28px;
+}
+.publication a.trending-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.17px;
+  color: var(--black);
+  text-decoration: none;
+  margin-right: auto;
+}
+.publication a.trending-name:hover {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+.publication a.trending-name .owner {
+  color: var(--gray-48);
+  font-weight: 500;
+}
+.publication .trending-meta {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.publication .chip {
+  display: inline-block;
+  padding: 3px 9px;
+  background: var(--light-gray);
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--gray-80);
+  letter-spacing: -0.1px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+}
+.publication .chip.delta {
+  background: rgba(0, 113, 227, 0.08);
+  color: var(--apple-blue);
+}
+.publication p.trending-intro {
+  margin: 0 0 10px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--gray-80);
+  letter-spacing: -0.1px;
+}
+.publication .trending-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  border-left: 3px solid var(--apple-blue);
+}
+.publication .verdict-label {
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-48);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 0 0 auto;
+}
+.publication .verdict-text {
+  font-size: 14px;
+  color: var(--black);
+  line-height: 1.5;
+  letter-spacing: -0.1px;
+}
+
 /* === Code === */
 .publication code {
   font-family: var(--font-mono);

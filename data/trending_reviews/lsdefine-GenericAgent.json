@@ -1,18 +1,18 @@
 {
   "full_name": "lsdefine/GenericAgent",
-  "reviewed_at": "2026-04-18T17:50:08Z",
+  "reviewed_at": "2026-04-19T03:49:27Z",
   "model": "claude-opus-4-7",
-  "duration_s": 112.7,
-  "intro": "一个 Windows 优先、把键鼠 / 浏览器 / ADB / WeChat 全部塞进 9 个原子工具的本地 Agent 框架，主打\"用一次就沉淀一条 Markdown 技能\"的技能库玩法。",
+  "duration_s": 138.5,
+  "intro": "一个单仓 Python 实现的自主 agent 框架，核心约 3K 行，对接多家 LLM，给用户本机浏览器、终端、文件系统、键鼠和 ADB 手机的执行权，靠逐步沉淀技能库来迭代自己。",
   "tech_stack": [
-    "Python 3（.py / .pyw 双入口，Windows 重度依赖 win32api）",
-    "手写 HTTP 会话层（requests）接 Claude / OpenAI 兼容 / Minimax，外加 Mixin 故障转移",
-    "bs4 + 自写 simphtml（870 行 HTML 裁剪器）",
-    "Chrome CDP 桥 + simple_websocket_server / bottle 做浏览器注入",
-    "PyQt 桌面宠物 / Streamlit(stapp) / 微信 / 钉钉 / QQ / 飞书 / 企业微信多前端",
-    "ADB + PIL/OCR 做手机端屏控",
-    "Markdown SOP + Python 脚本堆在 `memory/` 当技能库"
+    "Python 3（无重型框架，纯 requests/subprocess/线程）",
+    "多 LLM 后端：Claude / OpenAI / Gemini / Kimi / MiniMax / GLM（自写的 llmcore.py 适配层）",
+    "浏览器控制：自写的 TMWebDriver + CDP 桥接（注入真实浏览器，不走 Playwright）",
+    "前端壳：Streamlit / PyQt / pywebview，另带 Telegram / WeChat / DingTalk / QQ / 企微 bot",
+    "手机控制：ADB + 自写 OCR/UI 检测",
+    "分层记忆 L0-L4（纯文本文件 + 技能目录，没有向量库）"
   ],
-  "scale": "纯 Python，顶层 5 个核心脚本 ~2.7K 行（`llmcore.py` 919、`simphtml.py` 870、`ga.py` 558），加上 `frontends/` 9 个接入端再翻 ~5K 行，`memory/` 再塞十几个 SOP + 工具脚本；整体在 **中型单仓** 量级（非 monorepo，扁平）。shallow clone 只看到 1 个 squash commit（2026-04-18），但 README 里迭代日志从 2026-01 拉到 2026-04，单作者活跃维护。",
-  "evaluation": "这是个有想法、但工程卫生一般的**个人主导严肃项目**，不是玩具也不是营销 wrapper。亮点有两处：一是\"技能不是预装而是用一次写一次\"，把执行路径冷凝成 `memory/*_sop.md` 再回召，这个设计在一堆 LangChain 式 Agent 里确实清新；二是真的去啃了 Windows 下控 WeChat / Alipay / 股票客户端这种脏活，不是只会 curl OpenAI。\n\n但硬伤也明显：README 开口就吹\"~3K 行核心\"，实际 `llmcore.py` + `simphtml.py` 就快 1.8K，算上 ga.py 早破 3K，frontends 再堆 5K，这种\"极简\"话术要打折扣。代码风格是**一行塞十条语句 + 裸 `except: pass`** 的上古脚本味，测试只有一份 minimax 集成测试，config 通过\"变量名包含 claude/oai/mixin 字符串\"来分发 Session，非常脆。全链路强绑 Windows（`.pyw`、`win32api`、WeChat PC 客户端），Mac/Linux 用户基本只剩 bash 执行器能用。法律风险也要心里有数——自动化驱动支付宝 / 微信 / 券商客户端，封号和合规问题都是你自己的。\n\n谁适合看：想学\"技能持久化 + 本地系统级控制\"思路的人、折腾 Windows 自动化的国内开发者。谁别碰：想要干净 API 抽象、跨平台、能进生产的团队——这个栈直接不满足。新意有，但被工程粗糙度稀释了。"
+  "scale": "纯 Python 项目，核心 6 个文件（agent_loop / agentmain / ga / llmcore / simphtml / TMWebDriver）合计约 3K 行，算上 7 个前端壳和 memory 子模块总共约 8.8K 行；单仓平铺结构，没有子包嵌套。git 历史只有一条 squash commit（4abb8e2，今日），README 里声称\"每一次 commit 都是 agent 自主完成\"——但真实历史里压根没有多条 commit，看不出维护节奏。",
+  "verdict": "思路有料的极简自演化 agent 框架，China-first 场景打得深，但仓库历史和营销口径对不上，落地前得自己掂量信任度。",
+  "evaluation": "这是一个有真实想法、但包装大于事实的个人/小团队项目。值得看的地方：agent_loop.py 真的就是百来行的生成器驱动循环，tools_schema.json 真的就是 9 个原子工具（code_run / file_* / web_* / update_working_checkpoint / ask_user / start_long_term_update），分层记忆也是老老实实把 L0-L4 落到文本文件——\"极简\"这个卖点代码层面对得上。llmcore.py 里手搓了 Claude/OAI/Gemini/Kimi/MiniMax/GLM/Mixin 多后端、自动压缩历史标签、工具描述轮换，这部分工程量不小且有细节。TMWebDriver 走的是 CDP 桥接注入用户已登录的真实浏览器，这才是它敢打 WeChat / 支付宝 / 点外卖这类 demo 的底气，和 Playwright 沙箱路线是另一个思路。门槛和风险都很明显：要自备 API key、要往真实浏览器里注入脚本、要给 ADB 控手机、要在本机跑任意代码——这是个高权限玩具，不适合给非技术用户或企业场景。最大的信任问题在 git 历史：README 把\"agent 自主完成每一条 commit\"当核心卖点，而仓库里就一条 squash commit，这种口径和证据的错位让\"自举\"叙事整个打折。新意评估：和 AutoGPT / OpenInterpreter / Claude Code 比，它的差异化在\"真实浏览器注入 + 技能文本库 + 中国 IM 全家桶前端\"，技术路线不新但组合确实少见。想看极简 agent loop 写法的可以抄 agent_loop.py 和 tools_schema.json；想直接用的建议先 fork、关掉 ADB 和浏览器注入再说。"
 }

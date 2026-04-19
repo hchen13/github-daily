@@ -1,17 +1,18 @@
 {
   "full_name": "microsoft/markitdown",
-  "reviewed_at": "2026-04-18T17:36:27Z",
+  "reviewed_at": "2026-04-19T03:47:22Z",
   "model": "claude-opus-4-7",
-  "duration_s": 62.6,
-  "intro": "微软官方出的文件→Markdown 通用转换器，覆盖 PDF/Office/HTML/音频/图片/EPUB/zip 等 20+ 格式，目标是把杂七杂八的文档喂给 LLM 前统一成 Markdown。",
+  "duration_s": 80.0,
+  "intro": "微软维护的通用文件转 Markdown 工具，覆盖 PDF、Office、图片、音频、YouTube、Outlook .msg 等十几种格式，定位是喂给 LLM 前的文档预处理管道。",
   "tech_stack": [
-    "Python 3.10+",
-    "magika (文件类型识别)",
-    "beautifulsoup4 + markdownify",
-    "pdfminer.six / pdfplumber / python-pptx / mammoth / openpyxl",
-    "Azure Document Intelligence (可选)",
-    "MCP server (独立子包)"
+    "Python 3.10+（MIT，hatchling 构建）",
+    "magika（文件类型识别）+ markdownify（HTML→MD）",
+    "pdfminer.six / pdfplumber / mammoth / python-pptx / openpyxl（各格式上游）",
+    "Azure Document Intelligence（可选云端后端）",
+    "MCP SDK（独立子包 markitdown-mcp）",
+    "entry_points 插件机制（markitdown-ocr 以此挂入）"
   ],
-  "scale": "多包 Python 仓库（monorepo 结构），四个子包：markitdown 核心 + markitdown-mcp + markitdown-ocr + sample-plugin，约 69 个 .py 文件、1.1 万行代码，核心是 converters/ 下 20+ 个独立 converter + 插件 entry_points 机制。测试目录齐全（PDF 内存、表格、文档智能专项都有）。Microsoft 官方维护，活跃更新中。",
-  "evaluation": "严肃工程，微软招牌，不是营销 wrapper。定位很实在——不是做 Markdown 预览器，是给 RAG / Agent pipeline 做输入归一化的底座，所以 pandoc 那套它不抄，走的是 \"每种格式单独写 converter + magika 类型嗅探 + 插件机制 + MCP 服务器暴露\" 的路子，MCP 子包说明是奔着 Claude / Codex 这类 agent 的工具生态去的。架构清爽：_base_converter 定接口，converters/ 一个格式一个文件，优先级打分路由，可插拔。门槛在依赖——想全格式得装 `[all]`，PDF/音频/Azure Doc Intel 各自吃一块；纯文档转换没 GPU 要求，但音频转写和图片 caption 要外部账号。硬伤也明显：这么多格式 parser 拼一起，边界 bug 不断（最新 commit 就是修 HTML 深嵌套 RecursionError），依赖面大、装起来脏。适合做 agent 数据 pipeline 的人直接拿来当模块；只要转一两种格式的不用看，pandoc/专用库更轻。新意中等——思路不神奇，但工程密度和 MCP 整合是领先的。"
+  "scale": "Python monorepo，四个包（核心 markitdown + MCP server + OCR 插件 + sample plugin），约 69 个 .py 文件，converters 目录合计 ~3300 行——每种格式一个转换器。测试挑了 PDF 内存、主格式、表格等易炸点。issue 编号到 #1644，最新 commit 2026-04-15 修深嵌套 HTML 的 RecursionError，维护活跃。",
+  "verdict": "微软维护的多格式文档→Markdown 管道，MCP、插件、云端 OCR 后端配齐，LLM 文档预处理场景里完成度最高的一个。",
+  "evaluation": "严肃工具，不是新鲜玩具。核心价值是一个 API 吃下十几种格式，直接吐 LLM 友好的 Markdown。架构上值得看两点：entry_points 插件机制（markitdown-ocr 就是独立包挂进来的），以及内置 markitdown-mcp 子包，Claude Code / Cursor 能直接拉起来当 MCP server 用。每个转换器都是 pdfminer / mammoth / python-pptx 这类上游库的薄包装，天花板取决于上游——复杂表格和扫描件 PDF 别指望它变魔术，要 OCR 就走插件或 Azure Document Intelligence 后端。issue 到 #1644、最新补丁刚修深嵌套 HTML 的 RecursionError，在用在修。适合批量把杂格式文档塞进 RAG 或 agent 上下文的团队；想一站式搞定扫描件和复杂版面的，另找专用解析。新意上不算突破，但覆盖面、MCP 集成、微软长期维护三样凑齐，同类里最省心的选择。"
 }

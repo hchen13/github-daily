@@ -26,6 +26,7 @@ from markdown_it import MarkdownIt
 
 from config import load_config
 from renderers.charts import inject_activity_panel
+from renderers.trending import inject_weekly_top10
 
 logger = logging.getLogger("renderer")
 
@@ -48,6 +49,7 @@ def build_html(md_text: str, title: str, target_date: date) -> str:
     body = md_to_html_body(md_text)
     cfg = load_config()
     body = inject_activity_panel(body, target_date, cfg.storage.db_path, cfg.enabled_repos)
+    body = inject_weekly_top10(body, target_date, Path(cfg.storage.trending_dir))
     css = (ASSETS_DIR / "apple.css").read_text(encoding="utf-8")
     js = (ASSETS_DIR / "chart-tooltip.js").read_text(encoding="utf-8")
     shell = (ASSETS_DIR / "shell.html").read_text(encoding="utf-8")

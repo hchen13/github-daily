@@ -1,17 +1,18 @@
 {
   "full_name": "EvoMap/evolver",
-  "reviewed_at": "2026-04-18T17:50:49Z",
+  "reviewed_at": "2026-04-19T03:53:17Z",
   "model": "claude-opus-4-7",
-  "duration_s": 135.4,
-  "intro": "一个把 Cursor / Claude Code / Codex 等 Agent 运行时的 session 日志，经本地 proxy 回传到自家 evomap.ai Hub、再给你下发\"进化 prompt\"的 Node CLI 壳——包装成\"Agent 自进化引擎\"的营销项目。",
+  "duration_s": 114.0,
+  "intro": "一个 Node.js CLI 工具，挂在 Claude Code / Cursor / OpenClaw 的 hooks 里，扫描 agent 运行日志、识别失败模式、产出\"进化 prompt\"，并通过本地 Proxy 与 evomap.ai 的 Hub 同步技能资产。",
   "tech_stack": [
-    "Node.js ≥ 18（CommonJS、node:test 原生测试）",
-    "纯手写 JS，唯一 runtime 依赖是 dotenv",
-    "javascript-obfuscator（devDep，用来混淆核心 src）",
-    "git CLI（rollback / blast radius 必需）",
-    "Cursor / Claude Code / Codex 的 hook adapter",
-    "自家 \"EvoMap Hub\" HTTP 协议 + 本地 proxy/mailbox"
+    "Node.js (>=18, 纯 CommonJS)",
+    "dotenv（唯一运行时依赖）",
+    "javascript-obfuscator（核心模块发布前混淆）",
+    "git CLI + GitHub API（rollback / release / issue 上报）",
+    "本地 HTTP Proxy + JSONL 邮箱（127.0.0.1:19820）",
+    "适配器：Claude Code hooks、Cursor hooks、OpenClaw stdout 协议"
   ],
-  "scale": "单包 npm CLI（`@evomap/evolver`）。源码主要在 `src/gep`、`src/proxy`、`src/adapters`、`src/ops`，入口 `index.js` 单文件 923 行，合计 ~70 个 JS 文件、~48 个测试文件。结构上是中型单包，不是 monorepo。维护状态**看不准**：package.json 已经到 v1.67.6，但整个仓库只有**一条** commit \"Release v1.67.6\"（2026-04-18），公开历史是被压平的发布快照，不是真实开发轨迹。",
-  "evaluation": "这玩意先给结论：**披着 GPL-3.0 皮的 source-available 营销 wrapper，不是严肃工程**。核心证据三条：一、`src/gep/` 下 selector / mutation / solidify / prompt / memoryGraph / personality / skillDistiller 等关键文件全部被 `javascript-obfuscator` 处理过，清一色 `_0x1c675d` 十六进制垃圾名，单文件动辄几十万字节——GPL 要求发布的是\"便于修改的首选形式\"，混淆后的 JS **根本不是 source**，这是 GPL 协议精神上的违约。二、repo 只有 1 条 squash commit，却挂着 v1.67.6 的版本号，配合 README 里那段\"别人抄了我们所以要转向 source-available\"的小作文，味道很重：对外开源是姿态，对内真实演化全在私仓。三、技术上并没有新意——它就是往 Cursor/Claude Code/Codex 的 hook 槽里插脚本，把 session 日志打到本地 proxy，再上报到 `evomap.ai` Hub 换\"进化资产\"；所谓\"GEP (Genome Evolution Protocol)\"、\"基因/胶囊/进化事件\"是给 prompt 版本管理换的一套营销词。谁该看：研究对手工程、做竞品分析的人。谁不用看：想读懂原理的、想 fork 改的、在意可审计性的、对数据外泄敏感的团队——全部跳过。真要做 agent 自我改进，随便翻 DSPy / TextGrad 源码都更值得。"
+  "scale": "JavaScript 单体仓库，src/ 下分 gep / proxy / atp / adapters / ops 五块，可读源码约 1.1 万行，配 50 个 node:test 测试文件约 1 万行；但核心引擎（evolve.js 731KB、skillDistiller 461KB、solidify 393KB、prompt 253KB 等十几个文件）全部经 javascript-obfuscator 处理。git 历史只有一条 squash commit \"Release v1.68.0-beta.1\"，看不到真实开发轨迹。",
+  "verdict": "架构想法不轻，但 GPL 仓库里塞混淆代码、单 commit 起手、配一篇\"Hermes 抄我们\"的檄文，可信度自损。",
+  "evaluation": "**判断先行：这是一个有正经工程量、但在\"开源\"这件事上做了手脚的项目，看代码之前先把期待降一档。** 真正可读的部分——本地 Proxy mailbox（agent 不直连 Hub，只读写本地 JSONL，由 Proxy 后台同步）、SKILL.md 里相当克制的能力/网络白名单、50 个 node:test 测试文件、多平台 hook 适配（claudeCode / cursor / OpenClaw）——这些都不是 vibe coding 能拼出来的，proxy 这套\"本地 IPC + 远端 Hub\"的模式本身值得抄进自己的 agent 架构里看一眼。但硬伤也直白：仓库挂 GPL-3.0，核心 evolve.js / solidify / skillDistiller / prompt / memoryGraph 等十几个最关键的文件全部用 javascript-obfuscator 混淆发布，GPL 要求\"preferred form for modification\"，这等于自己违反自己的协议；整个 repo 只有一条 squash commit，没有任何真实开发历史；README 顶部一段\"Hermes Agent 抄了我们，所以我们要转 source-available\"的声明配上自家博客的\"相似度分析\"，更像营销动作而不是技术沟通。**适合谁**：想研究 agent self-evolution / skill 资产化这个方向的人，可以读它的 SKILL.md 和 proxy 目录当架构参考。**不适合谁**：想真正二次开发、或者把它当可信开源依赖接进生产的——核心是黑盒，所有评估、变异、技能蒸馏的逻辑你都看不见，出问题没法 debug。**新意**：把 agent 自我改进包装成\"基因/胶囊/事件\"的资产模型并接一个中心化 Hub 做交易/排行榜，框架感强，但自我改进 + 中心化技能市场这条路 LangChain Hub、各家 agent skill registry 都在试，目前没有数据证明 EvoMap 的版本跑得通。"
 }

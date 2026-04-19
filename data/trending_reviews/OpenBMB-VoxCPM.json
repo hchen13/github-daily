@@ -1,17 +1,18 @@
 {
   "full_name": "OpenBMB/VoxCPM",
-  "reviewed_at": "2026-04-18T17:37:24Z",
+  "reviewed_at": "2026-04-19T03:47:16Z",
   "model": "claude-opus-4-7",
-  "duration_s": 55.2,
-  "intro": "OpenBMB 出的 tokenizer-free TTS，走 diffusion + 自回归直接吐连续语音表征，绕开离散声码 token；当前版 VoxCPM2 是 2B 参数、30 语种、48kHz，支持文本描述造声音和参考音频克隆。",
+  "duration_s": 58.8,
+  "intro": "OpenBMB 开源的 tokenizer-free TTS 系统 VoxCPM2，2B 参数、基于 MiniCPM-4 主干，支持 30 种语言的语音合成、声音设计和声纹克隆，输出 48kHz 音频。",
   "tech_stack": [
-    "Python 3.10+ / PyTorch 2.5+",
-    "MiniCPM-4 backbone + 自研 AudioVAE",
-    "transformers / huggingface-hub / modelscope",
-    "Gradio 6 WebUI + CLI (argbind)",
-    "FunASR + ZipEnhancer 前处理",
-    "可选 Nano-vLLM / vLLM-Omni 推理加速"
+    "Python 3.10+ / PyTorch ≥ 2.5（CUDA 12+）",
+    "MiniCPM-4 作为文本主干 + AudioVAE V2 编解码",
+    "Diffusion AR 架构（LocDiT + Unified CFM）",
+    "HuggingFace Transformers / ModelScope / safetensors 模型分发",
+    "Gradio WebUI + CLI 两套入口，训练链路用 accelerate",
+    "推理加速路径：Nano-vLLM / vLLM-Omni（可选）"
   ],
-  "scale": "纯 Python，约 40 个源文件 9.6k 行，src/voxcpm 下按 model / modules(audiovae, locdit, locenc, minicpm4, layers) / training / utils 正经分层，外带两个 Gradio 入口和 LoRA 微调脚本；中型单包规模，2025.09 首发、2025.12 出 1.5、2026.04 出 VoxCPM2，迭代节奏密集且在维护。",
-  "evaluation": "这是严肃研究工程，不是套壳。tokenizer-free + 扩散自回归在 TTS 里是明确的技术路线押注，代码对得上 arXiv 技术报告，MiniCPM-4 当语言骨干 + 自家 AudioVAE V2 做 16k→48k 非对称升采样，思路清晰；Apache-2.0 权重开放、可商用，工业可用性强。想做语音克隆 / 多语种 TTS / 端侧合成的人值得看，只想调 API 生成语音的用户没必要凑热闹——跑起来要 GPU（作者自己报 RTX 4090 RTF 0.3），且依赖 funasr、modelscope、HF 一堆重型栈。硬伤也明显：tests/ 只有 592 行基本是 CLI 冒烟，核心 dit / vae / 采样逻辑几乎零单测；`app_old.py` 和 1307 行的 `lora_ft_webui.py` 这种上帝文件并存，说明产品迭代压过了代码整洁；README 把 Nano-vLLM、vLLM-Omni、Voice Design 全塞一起，实际仓内只是调用方。总体：技术有料、工程偏研究组风格，不是成熟 SDK。"
+  "scale": "Python 单语言，src/voxcpm 下 33 个源文件约 1 万行，按 model / modules（audiovae、locdit、locenc、minicpm4、layers）/ training / utils 清晰分层；外层还有 app.py、lora_ft_webui.py、三套版本配置（v1 / v1.5 / v2）和微调脚本。上游仓库是 squash 镜像看不到历次提交，但 README 的 News 显示 2025.09 发 0.5B、2025.12 发 1.5、2026.04 发 2B，迭代节奏稳定，最近一次提交 4 月 17 日。",
+  "verdict": "面壁系严肃 TTS 工程，2B 参数 + 30 语言 + 48kHz 是真材实料，门槛在 CUDA 卡和 HF 权重下载。",
+  "evaluation": "这是一个工程化程度不错的开源 TTS 项目，不是 demo。代码层面能看出几个踏实的地方：把 AudioVAE V2、LocDiT、MiniCPM-4 主干、Unified CFM 拆成独立 module，LoRA 走的是 `apply_lora_to_named_linear_modules` 这种通用注入，training 目录自带 packer、tracker、accelerator，v1/v1.5/v2 三份配置都保留下来——说明作者在认真做版本兼容，而不是每次发版推翻前作。真正有意思的点是 tokenizer-free 的 diffusion autoregressive 路线：跳过离散 token 直接生成连续语音表征，配合 16kHz 参考音频编码、48kHz 解码的非对称 VAE，这在开源 TTS 里属于少见的做法。对谁合适：想自建多语种 TTS 服务、有 4090 级别卡、能接受 HF/ModelScope 拉模型的团队；对只想本地 CPU 跑一段 TTS 的个人开发者不合适。硬伤也要说：tests 目录只有两个文件，测试覆盖形同虚设；app.py 和 app_old.py 并存，lora_ft_webui.py 单文件 45KB，工程洁癖看了会难受。新意评估：比 F5-TTS、CosyVoice、ChatTTS 这批同类，VoxCPM2 的优势在规模（2B / 2M 小时）和语种（30 种含中文方言）的覆盖面，不是范式创新；要是单纯刷中英双语克隆效果，和头部开源项目拉不开代差。"
 }

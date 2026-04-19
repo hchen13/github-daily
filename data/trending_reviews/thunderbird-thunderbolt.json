@@ -1,17 +1,18 @@
 {
   "full_name": "thunderbird/thunderbolt",
-  "reviewed_at": "2026-04-18T17:29:37Z",
+  "reviewed_at": "2026-04-19T03:46:00Z",
   "model": "claude-opus-4-7",
-  "duration_s": 60.3,
-  "intro": "Thunderbird 官方的跨平台 AI 客户端 Thunderbolt，前端一套 React + Tauri 打包成 Web/桌面/iOS/Android，后端 Elysia + PowerSync 做同步，号称让用户自带模型 API key 并可自托管，打的是 'AI 自主可控' 的招牌。",
+  "duration_s": 73.0,
+  "intro": "Mozilla Thunderbird 团队出品的开源跨端 AI 客户端，支持桌面和移动端，主打自托管、模型自选、数据自留的企业级部署场景。",
   "tech_stack": [
-    "TypeScript / React 19 + Vite",
-    "Tauri 2 (Rust) 跨端壳",
-    "Bun + Elysia 后端 + Drizzle ORM / Postgres(PGlite)",
-    "PowerSync 端到端数据同步",
-    "Vercel AI SDK + MCP + OpenAI/Anthropic/OpenRouter 多 provider",
-    "better-auth + 后量子加密 (@noble/post-quantum)"
+    "React 19 + Vite + Radix UI + Tailwind 4（前端）",
+    "Tauri 2（桌面 + iOS + Android 外壳，Rust）",
+    "Bun + Elysia + Drizzle + PostgreSQL（后端 API）",
+    "PowerSync（本地 SQLite 与 Postgres 的离线优先同步）",
+    "Vercel AI SDK + MCP Client（Anthropic / OpenAI / OpenRouter / Ollama）",
+    "Better Auth + @noble/post-quantum（认证 + 可选 E2E 加密，含后量子原语）"
   ],
-  "scale": "前端 src/ 下 600+ 个 ts/tsx，backend/src 100+ 文件，另有 src-tauri Rust 壳、powersync-service、deploy（Docker/K8s/Pulumi）、e2e、storybook、docs 一整套——属于正儿八经的中型多栈工程，结构成熟。shallow clone 只能看到一条 commit，但版本号已到 0.1.87、PR 编号到 633，说明迭代相当活跃。",
-  "evaluation": "Mozilla Thunderbird 团队新开的 AI 客户端，基本盘是严肃工程而不是 demo：Tauri 六端打包、PowerSync 做离线同步、better-auth + 后量子密钥、Drizzle + PGlite、OpenTelemetry、Playwright e2e、Storybook、Docker/K8s/Pulumi 部署全家桶，测试文件满地跑，MPL-2.0 许可——这套配置量说明是奔着企业私有化部署去的。适合想要一个能接 Ollama/OpenAI 兼容端点、自己掌握数据的团队试水，不适合只想点两下就用的普通用户——README 自己也承认目前强依赖后端认证和搜索服务，离线 first 还没做到，所谓 '自主可控' 目前更像是愿景。硬伤有三：一是功能还在早期、官方声明正在做安全审计；二是要跑全套得自己拉一个 PowerSync + Postgres 后端，门槛不低；三是相对 LibreChat、Jan 这类已经铺开的同类项目，差异点主要靠 Thunderbird 品牌和企业 FDE 支持，技术上并没有特别亮眼的新意。看点在于 Mozilla 会不会把它做成真正的 Thunderbird 级项目。"
+  "scale": "以 TypeScript/TSX 为主：前端 src/ 约 612 个文件，backend/ 约 111 个，另有 Rust 的 Tauri 壳、独立的 powersync-service、Docker/K8s helm/Pulumi 三套部署。结构属成熟中大型 monorepo——CI、Husky、lint-staged、Storybook、Playwright e2e、size-limit 齐全，还带 .thunderbot 和 .claude 目录。公开仓库只有 1 条 squash commit（2026-04-17），显然是内部库首发到公域，项目版本号已到 0.1.87，实质活跃。",
+  "verdict": "Thunderbird 团队下场做的严肃跨端 AI 客户端，工程水准到位，但当前阶段自托管还没真正闭环。",
+  "evaluation": "这是一个严肃工程，不是周末玩具也不是营销 wrapper。Mozilla Thunderbird 团队亲自下场，代码层面能看到真功夫：前端 React 19 + Tauri 2 打桌面和移动同一套、后端用 Bun/Elysia 而不是随手抄的 Next.js、本地 SQLite 作为真理源通过 PowerSync 反向同步 Postgres、可选 E2E 加密里甚至引入了 @noble/post-quantum 的后量子原语，配套三套部署方案（Docker Compose / Helm / Pulumi）。值得看的是它把\"自托管 + 离线优先 + 模型无关\"这三件事合在一个代码库里认真做，而不是只做其中一件——这在同类开源 AI 客户端里并不常见。适合愿意自己运维 Postgres + PowerSync + Keycloak 一整套栈的中小团队和想要企业级 on-prem 的客户；不适合想下载即用的普通个人用户。现阶段硬门槛要看清楚：README 自己承认仍依赖它家的认证和搜索服务，还没做到\"完全离线\"；推理端必须自带 Ollama/llama.cpp 或 API key；E2E 加密还没过密码学审计，自己也打了 warning。新意谈不上颠覆，LibreChat/Jan/Chatbox 都在占这条赛道，但 Thunderbird 品牌背书 + 真正的移动端 + PowerSync 同步是它的差异点。"
 }

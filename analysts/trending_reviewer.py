@@ -101,11 +101,14 @@ def clone_repo(full_name: str) -> Optional[Path]:
     return dest
 
 
-SECTION_RE = re.compile(r"^(INTRO|TECH_STACK|SCALE|EVALUATION)\s*:\s*$", re.MULTILINE)
+SECTION_RE = re.compile(r"^(INTRO|TECH_STACK|SCALE|VERDICT|EVALUATION)\s*:\s*$", re.MULTILINE)
+
+REQUIRED_SECTIONS = ("INTRO", "TECH_STACK", "SCALE", "EVALUATION")
 
 
 def parse_review(text: str) -> Optional[dict]:
-    """Parse the four-section format: INTRO/TECH_STACK/SCALE/EVALUATION."""
+    """Parse the section format. VERDICT is optional for back-compat with
+    older cached reviews; everything else is required."""
     text = text.strip()
     # Strip optional code fences
     if text.startswith("```"):
@@ -113,7 +116,7 @@ def parse_review(text: str) -> Optional[dict]:
         text = re.sub(r"\n?```$", "", text)
 
     matches = list(SECTION_RE.finditer(text))
-    if len(matches) < 4:
+    if len(matches) < len(REQUIRED_SECTIONS):
         return None
 
     sections: dict[str, str] = {}
@@ -123,7 +126,7 @@ def parse_review(text: str) -> Optional[dict]:
         body_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         sections[name] = text[body_start:body_end].strip()
 
-    if not all(k in sections for k in ("INTRO", "TECH_STACK", "SCALE", "EVALUATION")):
+    if not all(k in sections for k in REQUIRED_SECTIONS):
         return None
 
     # Parse TECH_STACK as a bullet list
@@ -139,6 +142,7 @@ def parse_review(text: str) -> Optional[dict]:
         "intro": sections["INTRO"].strip(),
         "tech_stack": tech_stack,
         "scale": sections["SCALE"].strip(),
+        "verdict": sections.get("VERDICT", "").strip(),
         "evaluation": sections["EVALUATION"].strip(),
     }
 

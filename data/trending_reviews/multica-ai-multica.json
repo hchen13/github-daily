@@ -1,17 +1,18 @@
 {
   "full_name": "multica-ai/multica",
-  "reviewed_at": "2026-04-18T17:48:40Z",
+  "reviewed_at": "2026-04-19T03:47:23Z",
   "model": "claude-opus-4-7",
-  "duration_s": 62.9,
-  "intro": "给多家 coding agent（Claude Code、Codex、OpenClaw、Hermes、Gemini、Cursor Agent 等）套一层 Linear 式任务看板 + 工作区权限的\"管理层\"，配本地 daemon 把 issue 派发给 agent 去跑，带 WebSocket 实时进度和可复用 skill 库。",
+  "duration_s": 98.3,
+  "intro": "一个把 Claude Code/Codex/Gemini/Cursor Agent 等编码 Agent 当成团队成员、按 issue 分配任务并追踪执行的开源协作平台，定位是 \"给 AI-native 小团队用的 Linear\"。",
   "tech_stack": [
-    "Go 1.26 后端（Chi 路由、sqlc、pgx、gorilla/websocket、cobra CLI）",
+    "Go 1.26 后端（Chi router + sqlc + gorilla/websocket）",
     "PostgreSQL 17 + pgvector",
-    "Next.js 16（App Router）Web 应用",
-    "Electron 39 桌面端",
-    "pnpm + Turbo monorepo（apps/packages/server 分层）",
-    "AWS SDK v2（S3、Secrets Manager）、Resend、JWT、Playwright e2e"
+    "Next.js 16（App Router）前端",
+    "Electron 39 桌面端（electron-vite）",
+    "pnpm catalog + Turborepo monorepo",
+    "本地 daemon（cobra CLI），拉起本机 agent CLI 执行任务"
   ],
-  "scale": "中型 monorepo：Go 193 文件、TS/TSX 473 文件，apps（web/desktop/docs）+ packages（core/ui/views/eslint-config/tsconfig）+ server（cmd/internal/migrations/pkg）清晰分层，带 e2e、goreleaser、Docker、Homebrew tap、自托管 compose。server/migrations 里已经堆到 62 对 up/down（001 ~ 至少 015+），说明数据模型还在高频演进。最近一次提交 2026-04-18（就是今天），还挂着 #1322 PR，项目处于活跃开发期。",
-  "evaluation": "严肃工程，不是玩具——Go+Next+Electron+pgvector+WebSocket+JWT+daemon 配对这套基础设施都老老实实自己写了，不是三天 vibe code 能糊出来的。但要认清定位：这是**在别人造的 coding agent 上套壳的协作层**，核心卖点\"像分配同事一样分配给 agent\"本质就是 Linear/Jira 看板 + CLI runner，README 里还专门开一栏跟 Paperclip 对比，基本承认自己在同一片红海里。新意几乎没有，吃的是\"多 agent 统一调度\"这个产品口子而不是技术突破。门槛也不低——PG17+pgvector、Go 1.26、本机装好若干家 agent CLI、Docker、自托管要么云。硬伤：`HANDOFF_ARCHITECTURE_AUDIT.md`、`workspace-url-refactor-proposal.md` 这种文件挂在根目录加上 62 条 migration，说明架构还没收敛；README 的\"你下 10 个员工不是人\"这种营销话术和代码里做的事（就是个任务队列 + WebSocket 广播）落差明显。想搭团队内部 agent 调度台的可以抄它的结构；想看 agent runtime 本身创新的就别来了。"
+  "scale": "典型 monorepo：`apps/{web,desktop,docs}` + `packages/{core,ui,views,...}` + Go `server/`，约 455 个 TS/TSX + 193 个 Go 源文件，124 条有序 SQL migration，最新 commit 是 PR #1322。浅克隆看不到完整历史，但 PR 号和 migration 数足以判断这是长期演进、当下仍很活跃的中大型项目，结构成熟度属于\"产品级\"。",
+  "verdict": "严肃工程，Linear 式 AI agent 协作平台，要自托管得准备 Postgres+daemon+Docker 一整套，门槛不低。",
+  "evaluation": "这是个真工程，不是 wrapper。后端 Go + Chi + sqlc + pgvector + WebSocket，前端 Next.js 16，桌面端 Electron，前后端之间还有一个 cobra 写的本地 daemon，负责在用户机器上拉起 claude/codex/opencode/gemini/cursor-agent 等 CLI 执行任务——职责切得很干净。最有意思的点是把 \"agent 当队员\" 这个产品定位真落到了数据模型上：task 有完整生命周期（enqueue/claim/start/complete/fail），agent 有 profile、能评论、能被 @、能创建 issue，Skills 还单独做了结构化 migration 做持久复用；配 pgvector 做检索也合理。124 条 migration 说明数据模型在反复打磨，不是一锤子 demo。门槛客观存在：Postgres17+pgvector、Docker、Go 1.26、Node 20+、daemon 必须常驻才能跑 agent，自托管整套栈不是 `docker compose up` 就完事，fork 改造成本也不低。适合 2–10 人 AI-native 小队想统一看板管多个编码 agent 的场景；只想要个\"多 agent 终端\"的用户别来，过重。新意上：和 Paperclip 那种单人 agent 模拟器明确区分开，issue-驱动调度 + 多 runtime + skill 复用这个组合当前不算拥挤，但\"agent 真的能像队员一样 set and forget\"这点代码里看不出效果强度——得实际派任务跑一周才知道，暂时看不准。"
 }
