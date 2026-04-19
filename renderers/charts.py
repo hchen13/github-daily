@@ -139,7 +139,7 @@ def _log2_scale(v: int) -> float:
 
 
 def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
-                           width: int = 520, height: int = 320) -> str:
+                           width: int = 560, height: int = 320) -> str:
     """Daily activity chart. Each point = that day's issues + PRs + commits.
     No y-axis (log2 scale); line-end avatar + label + 7-day total."""
     daily_sum_by_repo: dict[str, list[int]] = {}
@@ -152,7 +152,7 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         ]
 
     # Layout — leave room on the right for avatar + label + value
-    pad_top, pad_right, pad_bottom, pad_left = 20, 110, 32, 14
+    pad_top, pad_right, pad_bottom, pad_left = 20, 150, 32, 14
     plot_w = width - pad_left - pad_right
     plot_h = height - pad_top - pad_bottom
     n = len(days)
@@ -217,10 +217,10 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         parts.append(
             f'<circle cx="{end_x:.2f}" cy="{end_y:.2f}" r="3" fill="{color}"/>'
         )
-        # Label value = 7-day total for this repo (more meaningful at a glance
-        # than the latest day alone)
-        total_7d = sum(series)
-        end_label_positions.append((end_y, repo, color, total_7d))
+        # Label value = latest day's activity (single-day count, matches the
+        # chart semantics — line-end data point itself).
+        latest = series[-1]
+        end_label_positions.append((end_y, repo, color, latest))
 
     # Resolve vertical collisions between labels.
     end_label_positions.sort(key=lambda t: t[0])
@@ -279,7 +279,7 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
     return (
         '<div class="momentum-card">'
         '<div class="momentum-title">每日活跃度 <span class="momentum-sub">'
-        'issues + PRs + commits · 线右数字为 7 日合计</span></div>'
+        'issues + PRs + commits · 线右数字为最新一日单日值</span></div>'
         f'{svg}'
         '</div>'
     )
