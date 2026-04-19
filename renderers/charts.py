@@ -14,8 +14,10 @@ Colors: Apple system palette assigned by repo order in config.yaml.
 """
 from __future__ import annotations
 
+import json
 import re
 from datetime import date, timedelta
+from html import escape
 from typing import Iterable, Sequence
 
 from db.models import get_db
@@ -174,7 +176,28 @@ def _line_chart_svg(
     )
 
     scale = max(max_v, 1)
-    hit_targets: list[str] = []  # rendered last so they sit on top
+    # Per-day records for JS tooltip: [{date, items:[{name,value,color}]}, ...]
+    day_records: list[dict] = []
+    for i, day in enumerate(days):
+        items = []
+        for idx, repo in enumerate(repos):
+            full_name = repo.full_name
+            series = series_by_repo.get(full_name, [0] * n)
+            items.append({
+                "name": repo.display_name,
+                "value": int(series[i]),
+                "color": REPO_COLORS[idx % len(REPO_COLORS)],
+            })
+        day_records.append({"date": _mmdd(day), "items": items})
+
+    # Vertical guide line (moved by JS on hover)
+    parts.append(
+        f'<line class="day-guide" x1="0" y1="{margin_top:.2f}" x2="0" '
+        f'y2="{baseline_y:.2f}" stroke="rgba(0,0,0,0.14)" stroke-width="1" '
+        f'visibility="hidden"/>'
+    )
+
+    # Each series: smooth curve + dots + endpoint halo
     for idx, repo in enumerate(repos):
         full_name = repo.full_name
         series = series_by_repo.get(full_name, [0] * n)
@@ -186,7 +209,6 @@ def _line_chart_svg(
             y = margin_top + plot_h - (v / scale) * plot_h
             xy.append((x, y))
 
-        # Smooth curve
         path_d = _catmull_rom_path(xy)
         parts.append(
             f'<path d="{path_d}" fill="none" stroke="{color}" stroke-width="2" '
@@ -194,11 +216,9 @@ def _line_chart_svg(
             f'style="filter:drop-shadow(0 1px 1.5px rgba(0,0,0,0.08))"/>'
         )
 
-        # Small visible marker dots. End-point ring for emphasis.
         for i, ((x, y), v) in enumerate(zip(xy, series)):
             is_last = i == len(xy) - 1
             if is_last:
-                # Outer halo + inner dot (ringed endpoint)
                 parts.append(
                     f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4" fill="{color}" '
                     f'fill-opacity="0.18"/>'
@@ -212,19 +232,22 @@ def _line_chart_svg(
                     f'fill-opacity="0.75"/>'
                 )
 
-            # Transparent hit area for easier hover + SVG <title> tooltip
-            hit_targets.append(
-                f'<circle cx="{x:.2f}" cy="{y:.2f}" r="10" fill="transparent" '
-                f'class="hit">'
-                f'<title>{repo.display_name} · {days[i][5:]} · {v}</title>'
-                f'</circle>'
-            )
+    # Day-column hit rectangles (transparent, on top). Each triggers the
+    # JS tooltip for its column. Width = step, centered on the day's x.
+    col_w = step
+    for i in range(n):
+        cx = margin_left + i * step
+        left = max(0.0, cx - col_w / 2)
+        parts.append(
+            f'<rect class="day-hit" x="{left:.2f}" y="{margin_top:.2f}" '
+            f'width="{col_w:.2f}" height="{plot_h:.2f}" '
+            f'fill="transparent" data-day-idx="{i}" data-cx="{cx:.2f}"/>'
+        )
 
-    parts.extend(hit_targets)
-
+    data_attr = escape(json.dumps(day_records, ensure_ascii=False), quote=True)
     return (
         f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid meet" '
-        f'class="activity-chart">'
+        f'class="activity-chart" data-series="{data_attr}">'
         + "".join(parts)
         + '</svg>'
     )
@@ -246,7 +269,7 @@ def render_activity_panel_html(repos: Sequence, end_date: date, db_path: str) ->
         cards.append(
             f'<div class="chart-card">'
             f'<div class="chart-title">{title}</div>'
-            f'{svg}'
+            f'<div class="chart-wrapper">{svg}<div class="chart-tooltip" hidden></div></div>'
             f'</div>'
         )
 
