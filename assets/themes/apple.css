@@ -128,10 +128,16 @@ body {
 /* === Activity panel: momentum + signal brief + KPI === */
 .publication .activity-panel {
   margin: 4px 0 36px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-areas:
+    "momentum signals"
+    "kpis     kpis";
+  gap: 14px;
 }
+.publication .momentum-card  { grid-area: momentum; }
+.publication .signal-brief   { grid-area: signals; }
+.publication .kpi-row        { grid-area: kpis; }
 
 /* --- Momentum chart (big, log2, avatar + label + value at line ends) --- */
 .publication .momentum-card {
@@ -154,10 +160,10 @@ body {
   height: auto;
 }
 
-/* --- Signal Brief (4 computed cards, 2×2 at publication width) --- */
+/* --- Signal Brief sidebar (4 cards stacked vertically) --- */
 .publication .signal-brief {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 .publication .signal-card {

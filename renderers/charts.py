@@ -139,7 +139,7 @@ def _log2_scale(v: int) -> float:
 
 
 def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
-                           width: int = 720, height: int = 260) -> str:
+                           width: int = 520, height: int = 320) -> str:
     """Cumulative activity chart. No y-axis; line-end avatar + label + value."""
     # Compose per-repo daily totals (issues + prs + commits), then cumulative.
     totals_by_repo: dict[str, list[int]] = {}
@@ -154,8 +154,8 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         totals_by_repo[repo.full_name] = daily_total
         cumulative_by_repo[repo.full_name] = _cumulative(daily_total)
 
-    # Layout
-    pad_top, pad_right, pad_bottom, pad_left = 20, 150, 32, 14
+    # Layout — leave room on the right for avatar + label + value
+    pad_top, pad_right, pad_bottom, pad_left = 20, 120, 32, 14
     plot_w = width - pad_left - pad_right
     plot_h = height - pad_top - pad_bottom
     n = len(days)
