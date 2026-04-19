@@ -177,12 +177,8 @@ body {
   width: 100%;
   height: auto;
 }
-.publication .activity-chart circle {
+.publication .activity-chart circle.hit {
   cursor: default;
-  transition: r 0.1s ease-out;
-}
-.publication .activity-chart circle:hover {
-  r: 4.5;
 }
 
 /* === Tables (trending top 10) === */

@@ -68,18 +68,53 @@ def fetch_all_series(repos: Sequence, end_date: date, db_path: str) -> tuple[dic
     return out, days
 
 
+def _catmull_rom_path(points: list[tuple[float, float]]) -> str:
+    """Convert a list of (x,y) points to an SVG path ``d`` attribute using
+    Catmull-Rom → cubic-Bezier interpolation (tension 0.5).
+
+    Endpoints are duplicated so the curve starts/ends exactly at the first and
+    last point with horizontal-ish tangents. Produces much more natural-looking
+    lines than a raw polyline.
+    """
+    if not points:
+        return ""
+    if len(points) == 1:
+        x, y = points[0]
+        return f"M {x:.2f},{y:.2f}"
+    if len(points) == 2:
+        (x0, y0), (x1, y1) = points
+        return f"M {x0:.2f},{y0:.2f} L {x1:.2f},{y1:.2f}"
+
+    padded = [points[0]] + list(points) + [points[-1]]
+    x0, y0 = points[0]
+    out = [f"M {x0:.2f},{y0:.2f}"]
+    for i in range(1, len(points)):
+        p0 = padded[i - 1]
+        p1 = padded[i]
+        p2 = padded[i + 1]
+        p3 = padded[i + 2]
+        c1x = p1[0] + (p2[0] - p0[0]) / 6.0
+        c1y = p1[1] + (p2[1] - p0[1]) / 6.0
+        c2x = p2[0] - (p3[0] - p1[0]) / 6.0
+        c2y = p2[1] - (p3[1] - p1[1]) / 6.0
+        out.append(
+            f"C {c1x:.2f},{c1y:.2f} {c2x:.2f},{c2y:.2f} {p2[0]:.2f},{p2[1]:.2f}"
+        )
+    return " ".join(out)
+
+
 def _line_chart_svg(
     series_by_repo: dict[str, list[int]],
     repos: Sequence,
     days: list[str],
     width: int = 340,
-    height: int = 140,
-    margin_top: int = 14,
-    margin_right: int = 16,
-    margin_bottom: int = 22,
-    margin_left: int = 18,
+    height: int = 150,
+    margin_top: int = 18,
+    margin_right: int = 18,
+    margin_bottom: int = 24,
+    margin_left: int = 22,
 ) -> str:
-    """One chart with up to N polylines, coloured by repo slot."""
+    """One chart, smooth Bezier curves, per-point hover hit-areas with tooltips."""
     plot_w = width - margin_left - margin_right
     plot_h = height - margin_top - margin_bottom
 
@@ -92,63 +127,100 @@ def _line_chart_svg(
 
     parts: list[str] = []
 
-    # Baseline
+    # Gridlines: baseline (solid), midpoint (dashed), max (dashed).
     parts.append(
         f'<line x1="{margin_left}" y1="{baseline_y}" '
         f'x2="{width - margin_right}" y2="{baseline_y}" '
-        f'stroke="#ededf2" stroke-width="1"/>'
+        f'stroke="#e5e5ea" stroke-width="1"/>'
     )
-    # Max-value grid line (only if there's any data)
     if max_v > 0:
+        mid_y = margin_top + plot_h / 2
+        for y, val in [(margin_top, max_v), (mid_y, max_v / 2)]:
+            parts.append(
+                f'<line x1="{margin_left}" y1="{y:.2f}" '
+                f'x2="{width - margin_right}" y2="{y:.2f}" '
+                f'stroke="#f0f0f3" stroke-width="1" stroke-dasharray="2 4"/>'
+            )
         parts.append(
-            f'<line x1="{margin_left}" y1="{margin_top}" '
-            f'x2="{width - margin_right}" y2="{margin_top}" '
-            f'stroke="#f5f5f7" stroke-width="1" stroke-dasharray="2 3"/>'
+            f'<text x="{margin_left - 4}" y="{margin_top + 3}" text-anchor="end" '
+            f'font-family="ui-monospace, Menlo, monospace" font-size="9" '
+            f'fill="rgba(0,0,0,0.36)">{max_v}</text>'
         )
         parts.append(
-            f'<text x="{width - margin_right}" y="{margin_top - 3}" '
-            f'text-anchor="end" font-family="ui-monospace, Menlo, monospace" '
-            f'font-size="9" fill="rgba(0,0,0,0.48)">{max_v}</text>'
+            f'<text x="{margin_left - 4}" y="{baseline_y + 3}" text-anchor="end" '
+            f'font-family="ui-monospace, Menlo, monospace" font-size="9" '
+            f'fill="rgba(0,0,0,0.36)">0</text>'
         )
 
-    # Day tick labels (first + last day, MM-DD)
-    def _label(iso: str) -> str:
-        return iso[5:]  # MM-DD
+    # X-axis tick labels: first, middle, last (MM-DD).
+    def _mmdd(iso: str) -> str:
+        return iso[5:]
+    label_y = height - 6
+    tick_style = ('font-family="ui-monospace, Menlo, monospace" font-size="9" '
+                  'fill="rgba(0,0,0,0.48)"')
     parts.append(
-        f'<text x="{margin_left}" y="{height - 6}" text-anchor="start" '
-        f'font-family="ui-monospace, Menlo, monospace" font-size="9" '
-        f'fill="rgba(0,0,0,0.48)">{_label(days[0])}</text>'
+        f'<text x="{margin_left}" y="{label_y}" text-anchor="start" {tick_style}>'
+        f'{_mmdd(days[0])}</text>'
     )
+    if n >= 3:
+        mid_x = margin_left + (n // 2) * step
+        parts.append(
+            f'<text x="{mid_x:.2f}" y="{label_y}" text-anchor="middle" {tick_style}>'
+            f'{_mmdd(days[n // 2])}</text>'
+        )
     parts.append(
-        f'<text x="{width - margin_right}" y="{height - 6}" text-anchor="end" '
-        f'font-family="ui-monospace, Menlo, monospace" font-size="9" '
-        f'fill="rgba(0,0,0,0.48)">{_label(days[-1])}</text>'
+        f'<text x="{width - margin_right}" y="{label_y}" text-anchor="end" {tick_style}>'
+        f'{_mmdd(days[-1])}</text>'
     )
 
     scale = max(max_v, 1)
+    hit_targets: list[str] = []  # rendered last so they sit on top
     for idx, repo in enumerate(repos):
         full_name = repo.full_name
         series = series_by_repo.get(full_name, [0] * n)
         color = REPO_COLORS[idx % len(REPO_COLORS)]
-        # Compute points once, render polyline then dots.
+
         xy: list[tuple[float, float]] = []
         for i, v in enumerate(series):
             x = margin_left + i * step
             y = margin_top + plot_h - (v / scale) * plot_h
             xy.append((x, y))
-        pts_str = " ".join(f"{x:.1f},{y:.1f}" for x, y in xy)
+
+        # Smooth curve
+        path_d = _catmull_rom_path(xy)
         parts.append(
-            f'<polyline points="{pts_str}" fill="none" stroke="{color}" '
-            f'stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>'
+            f'<path d="{path_d}" fill="none" stroke="{color}" stroke-width="2" '
+            f'stroke-linejoin="round" stroke-linecap="round" '
+            f'style="filter:drop-shadow(0 1px 1.5px rgba(0,0,0,0.08))"/>'
         )
-        # Hover-target dot per data point with a native SVG <title> tooltip.
+
+        # Small visible marker dots. End-point ring for emphasis.
         for i, ((x, y), v) in enumerate(zip(xy, series)):
-            parts.append(
-                f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3" fill="{color}" '
-                f'fill-opacity="{1.0 if i == len(xy) - 1 else 0.85}">'
+            is_last = i == len(xy) - 1
+            if is_last:
+                # Outer halo + inner dot (ringed endpoint)
+                parts.append(
+                    f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4" fill="{color}" '
+                    f'fill-opacity="0.18"/>'
+                )
+                parts.append(
+                    f'<circle cx="{x:.2f}" cy="{y:.2f}" r="2.5" fill="{color}"/>'
+                )
+            else:
+                parts.append(
+                    f'<circle cx="{x:.2f}" cy="{y:.2f}" r="1.8" fill="{color}" '
+                    f'fill-opacity="0.75"/>'
+                )
+
+            # Transparent hit area for easier hover + SVG <title> tooltip
+            hit_targets.append(
+                f'<circle cx="{x:.2f}" cy="{y:.2f}" r="10" fill="transparent" '
+                f'class="hit">'
                 f'<title>{repo.display_name} · {days[i][5:]} · {v}</title>'
                 f'</circle>'
             )
+
+    parts.extend(hit_targets)
 
     return (
         f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid meet" '
