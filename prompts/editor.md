@@ -34,12 +34,12 @@ Weekly Trending Top 10 用表格 + "一句点评" 列。每个项目的点评必
 
 ## 输出格式（严格遵守）
 
-直接输出 Markdown，从 `# GitHub Daily · {date}` 开头，不加任何前言或代码块包裹。结构如下，缺一不可：
+直接输出 Markdown，从 `# 辛哥的开源风向` 开头，不加任何前言或代码块包裹。结构如下，缺一不可：
 
 ```
-# GitHub Daily · {date}
+# 辛哥的开源风向
 
-> 辛哥的开源风向
+> GitHub Daily · {date}
 
 ## 今日头条
 

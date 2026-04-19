@@ -25,7 +25,7 @@ from typing import Optional
 from markdown_it import MarkdownIt
 
 from config import load_config
-from renderers.charts import inject_charts
+from renderers.charts import inject_activity_panel
 
 logger = logging.getLogger("renderer")
 
@@ -47,7 +47,7 @@ def md_to_html_body(md_text: str) -> str:
 def build_html(md_text: str, title: str, target_date: date) -> str:
     body = md_to_html_body(md_text)
     cfg = load_config()
-    body = inject_charts(body, target_date, cfg.storage.db_path, cfg.enabled_repos)
+    body = inject_activity_panel(body, target_date, cfg.storage.db_path, cfg.enabled_repos)
     css = (ASSETS_DIR / "apple.css").read_text(encoding="utf-8")
     shell = (ASSETS_DIR / "shell.html").read_text(encoding="utf-8")
     return (

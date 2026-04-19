@@ -125,53 +125,53 @@ body {
   color: var(--black);
 }
 
-/* === Repo stats (7-day sparklines under each H3) === */
-.publication .repo-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin: 14px 0 24px;
+/* === Activity panel (4 charts × 4 repos, under the AI Agent H2) === */
+.publication .activity-panel {
+  margin: 4px 0 32px;
 }
-.publication .stat-card {
+.publication .activity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-80);
+  letter-spacing: -0.12px;
+}
+.publication .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.publication .legend-item .swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.publication .activity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.publication .chart-card {
   background: var(--light-gray);
   border-radius: 10px;
-  padding: 12px 14px 10px;
+  padding: 14px 16px 10px;
 }
-.publication .stat-label {
+.publication .chart-title {
   font-family: var(--font-text);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--gray-48);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-bottom: 6px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--gray-80);
+  margin-bottom: 4px;
+  letter-spacing: -0.12px;
 }
-.publication .stat-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.publication .stat-value {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.22px;
-  color: var(--black);
-}
-.publication .stat-sub {
-  font-size: 10px;
-  color: var(--gray-48);
-  margin-top: 4px;
-  letter-spacing: 0;
-}
-.publication .sparkline {
+.publication .activity-chart {
   display: block;
-  flex: 0 0 auto;
+  width: 100%;
+  height: auto;
 }
 
 /* === Tables (trending top 10) === */
@@ -342,32 +342,34 @@ body {
   .publication table {
     font-size: 12px;
   }
-  .publication .repo-stats {
-    grid-template-columns: repeat(2, 1fr);
+  .publication .activity-grid {
+    grid-template-columns: 1fr;
   }
 }
 
-/* === Print: keep stat blocks compact === */
+/* === Print: keep activity panel compact === */
 @media print {
-  .publication .repo-stats {
-    gap: 6px;
-    margin: 8px 0 14px;
-  }
-  .publication .stat-card {
-    padding: 8px 10px 6px;
+  .publication .activity-panel {
+    margin: 0 0 18px;
     page-break-inside: avoid;
   }
-  .publication .stat-label {
-    font-size: 8px;
+  .publication .activity-legend {
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 9px;
   }
-  .publication .stat-value {
-    font-size: 16px;
+  .publication .legend-item .swatch {
+    width: 8px;
+    height: 8px;
   }
-  .publication .stat-sub {
-    font-size: 8px;
+  .publication .activity-grid {
+    gap: 8px;
   }
-  .publication .sparkline {
-    width: 84px;
-    height: 22px;
+  .publication .chart-card {
+    padding: 8px 10px 6px;
+  }
+  .publication .chart-title {
+    font-size: 9px;
+    margin-bottom: 2px;
   }
 }

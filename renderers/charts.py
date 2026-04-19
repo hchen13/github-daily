@@ -1,142 +1,187 @@
-"""Repo-stat charts (7-day sparklines) for the publication.
+"""Activity panel: 4 line charts (one per metric), 4 lines per chart
+(one per tracked repo).
 
-For each tracked repo, queries SQLite for the last 7 days of:
-- issues created    (issues.created_at)
-- PRs opened        (pull_requests.created_at)
-- commits           (commits.committed_at, all branches)
-- PRs merged        (pull_requests.merged_at)
+Injected right after the ``## AI Agent 标杆项目动态`` section header so
+readers get the comparative overview before diving into per-repo prose.
 
-Renders a single inline SVG block per repo (no JS, no images, no extra
-network). The block is then injected after the corresponding ``<h3>`` in
-the publication HTML.
+Four metrics, 7-day window, one SVG each:
+- Issues created       (issues.created_at)
+- PRs opened           (pull_requests.created_at)
+- Commits              (commits.committed_at, across all branches)
+- PRs merged           (pull_requests.merged_at)
+
+Colors: Apple system palette assigned by repo order in config.yaml.
 """
 from __future__ import annotations
 
+import re
 from datetime import date, timedelta
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from db.models import get_db
 
 
-METRICS: list[tuple[str, str]] = [
-    ("issues", "Issues"),
-    ("prs", "PRs"),
-    ("commits", "Commits"),
-    ("merged", "PRs merged"),
+# (key, display title, SQL)
+METRICS: list[tuple[str, str, str]] = [
+    ("issues", "Issues 新增",
+     "SELECT COUNT(*) FROM issues WHERE repo_full_name=? AND date(created_at)=?"),
+    ("prs", "PRs 新开",
+     "SELECT COUNT(*) FROM pull_requests WHERE repo_full_name=? AND date(created_at)=?"),
+    ("commits", "Commits",
+     "SELECT COUNT(*) FROM commits WHERE repo_full_name=? AND date(committed_at)=?"),
+    ("merged", "PRs Merged",
+     "SELECT COUNT(*) FROM pull_requests WHERE repo_full_name=? AND date(merged_at)=?"),
 ]
 
 
-def fetch_7d_counts(repo_full_name: str, end_date: date, db_path: str) -> dict[str, list[int]]:
-    """Return ``{metric: [c_d-6, ..., c_d0]}`` for each of the four metrics."""
+# Apple system colors (light mode). Blue first because Claude Code is
+# typically slot 0; the rest rotate through pleasant, distinguishable hues.
+REPO_COLORS: list[str] = [
+    "#0071e3",  # apple blue
+    "#ff9500",  # apple orange
+    "#30b852",  # apple green (slightly darker than system green for print)
+    "#bf5af2",  # apple purple
+    "#ff375f",  # apple red
+    "#5e5ce6",  # apple indigo
+]
+
+
+def fetch_all_series(repos: Sequence, end_date: date, db_path: str) -> tuple[dict, list[str]]:
+    """Return ({metric: {repo_full_name: [c_d-6..c_d0]}}, [7 day labels])."""
     days = [(end_date - timedelta(days=n)).isoformat() for n in range(6, -1, -1)]
-    out: dict[str, list[int]] = {m: [0] * 7 for m, _ in METRICS}
-    out["_days"] = days  # type: ignore[assignment]
-
-    queries = {
-        "issues": "SELECT COUNT(*) FROM issues WHERE repo_full_name=? AND date(created_at)=?",
-        "prs": "SELECT COUNT(*) FROM pull_requests WHERE repo_full_name=? AND date(created_at)=?",
-        "commits": "SELECT COUNT(*) FROM commits WHERE repo_full_name=? AND date(committed_at)=?",
-        "merged": "SELECT COUNT(*) FROM pull_requests WHERE repo_full_name=? AND date(merged_at)=?",
-    }
-
+    out: dict[str, dict[str, list[int]]] = {m: {} for m, *_ in METRICS}
     with get_db(db_path) as conn:
-        for metric, sql in queries.items():
-            for i, day in enumerate(days):
-                row = conn.execute(sql, (repo_full_name, day)).fetchone()
-                out[metric][i] = row[0] if row else 0
-    return out
+        for repo in repos:
+            for key, _title, sql in METRICS:
+                series: list[int] = []
+                for day in days:
+                    row = conn.execute(sql, (repo.full_name, day)).fetchone()
+                    series.append(row[0] if row else 0)
+                out[key][repo.full_name] = series
+    return out, days
 
 
-def sparkline_svg(values: list[int], width: int = 132, height: int = 32) -> str:
-    """Inline SVG sparkline. Polyline + filled area; apple-blue stroke."""
-    n = len(values)
-    if n < 2:
-        return f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" class="sparkline"></svg>'
+def _line_chart_svg(
+    series_by_repo: dict[str, list[int]],
+    repos: Sequence,
+    days: list[str],
+    width: int = 340,
+    height: int = 140,
+    margin_top: int = 14,
+    margin_right: int = 16,
+    margin_bottom: int = 22,
+    margin_left: int = 18,
+) -> str:
+    """One chart with up to N polylines, coloured by repo slot."""
+    plot_w = width - margin_left - margin_right
+    plot_h = height - margin_top - margin_bottom
 
-    max_v = max(values) or 1
-    pad = 3
-    inner_h = height - pad * 2
-    step = (width - pad * 2) / (n - 1)
+    all_values = [v for s in series_by_repo.values() for v in s]
+    max_v = max(all_values) if all_values else 0
 
-    pts: list[str] = []
-    for i, v in enumerate(values):
-        x = pad + i * step
-        y = pad + inner_h - (v / max_v) * inner_h
-        pts.append(f"{x:.1f},{y:.1f}")
+    baseline_y = margin_top + plot_h
+    n = len(days)
+    step = plot_w / max(n - 1, 1)
 
-    line = " ".join(pts)
-    # Area path: start bottom-left, line over points, close to bottom-right
-    area_pts = [f"{pad:.1f},{height - pad:.1f}"] + pts + [f"{pad + (n - 1) * step:.1f},{height - pad:.1f}"]
-    area = " ".join(area_pts)
+    parts: list[str] = []
 
-    # End-point dot: highlight the most recent value
-    last_x = pad + (n - 1) * step
-    last_y = pad + inner_h - (values[-1] / max_v) * inner_h
-    dot = f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="2.5" fill="#0071e3"/>'
-
-    if max(values) == 0:
-        # Flat baseline rather than a dead line at top
-        baseline = height - pad
-        return (
-            f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" class="sparkline">'
-            f'<line x1="{pad}" y1="{baseline}" x2="{width - pad}" y2="{baseline}" '
-            f'stroke="#d2d2d7" stroke-width="1" stroke-dasharray="3 3"/>'
-            f'</svg>'
+    # Baseline
+    parts.append(
+        f'<line x1="{margin_left}" y1="{baseline_y}" '
+        f'x2="{width - margin_right}" y2="{baseline_y}" '
+        f'stroke="#ededf2" stroke-width="1"/>'
+    )
+    # Max-value grid line (only if there's any data)
+    if max_v > 0:
+        parts.append(
+            f'<line x1="{margin_left}" y1="{margin_top}" '
+            f'x2="{width - margin_right}" y2="{margin_top}" '
+            f'stroke="#f5f5f7" stroke-width="1" stroke-dasharray="2 3"/>'
+        )
+        parts.append(
+            f'<text x="{width - margin_right}" y="{margin_top - 3}" '
+            f'text-anchor="end" font-family="ui-monospace, Menlo, monospace" '
+            f'font-size="9" fill="rgba(0,0,0,0.48)">{max_v}</text>'
         )
 
+    # Day tick labels (first + last day, MM-DD)
+    def _label(iso: str) -> str:
+        return iso[5:]  # MM-DD
+    parts.append(
+        f'<text x="{margin_left}" y="{height - 6}" text-anchor="start" '
+        f'font-family="ui-monospace, Menlo, monospace" font-size="9" '
+        f'fill="rgba(0,0,0,0.48)">{_label(days[0])}</text>'
+    )
+    parts.append(
+        f'<text x="{width - margin_right}" y="{height - 6}" text-anchor="end" '
+        f'font-family="ui-monospace, Menlo, monospace" font-size="9" '
+        f'fill="rgba(0,0,0,0.48)">{_label(days[-1])}</text>'
+    )
+
+    scale = max(max_v, 1)
+    for idx, repo in enumerate(repos):
+        full_name = repo.full_name
+        series = series_by_repo.get(full_name, [0] * n)
+        color = REPO_COLORS[idx % len(REPO_COLORS)]
+        pts: list[str] = []
+        for i, v in enumerate(series):
+            x = margin_left + i * step
+            y = margin_top + plot_h - (v / scale) * plot_h
+            pts.append(f"{x:.1f},{y:.1f}")
+        parts.append(
+            f'<polyline points="{" ".join(pts)}" fill="none" stroke="{color}" '
+            f'stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>'
+        )
+        # End-point dot
+        last_x = margin_left + (n - 1) * step
+        last_y = margin_top + plot_h - (series[-1] / scale) * plot_h
+        parts.append(f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="2.5" fill="{color}"/>')
+
     return (
-        f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" class="sparkline">'
-        f'<polygon points="{area}" fill="rgba(0,113,227,0.10)"/>'
-        f'<polyline points="{line}" fill="none" stroke="#0071e3" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>'
-        f'{dot}'
-        f'</svg>'
+        f'<svg viewBox="0 0 {width} {height}" preserveAspectRatio="xMidYMid meet" '
+        f'class="activity-chart">'
+        + "".join(parts)
+        + '</svg>'
     )
 
 
-def render_repo_stats_html(repo_full_name: str, end_date: date, db_path: str) -> str:
-    counts = fetch_7d_counts(repo_full_name, end_date, db_path)
+def render_activity_panel_html(repos: Sequence, end_date: date, db_path: str) -> str:
+    data, days = fetch_all_series(repos, end_date, db_path)
+
+    legend_items = "".join(
+        f'<span class="legend-item">'
+        f'<span class="swatch" style="background:{REPO_COLORS[i % len(REPO_COLORS)]}"></span>'
+        f'{r.display_name}</span>'
+        for i, r in enumerate(repos)
+    )
+
     cards: list[str] = []
-    for key, label in METRICS:
-        series = counts[key]
-        total = sum(series)
+    for key, title, _sql in METRICS:
+        svg = _line_chart_svg(data[key], repos, days)
         cards.append(
-            '<div class="stat-card">'
-            f'<div class="stat-label">{label}</div>'
-            '<div class="stat-row">'
-            f'<div class="stat-value">{total}</div>'
-            f'{sparkline_svg(series)}'
-            '</div>'
-            '<div class="stat-sub">7 日</div>'
-            '</div>'
+            f'<div class="chart-card">'
+            f'<div class="chart-title">{title}</div>'
+            f'{svg}'
+            f'</div>'
         )
-    return '<div class="repo-stats">' + "".join(cards) + '</div>'
+
+    return (
+        '<section class="activity-panel">'
+        f'<div class="activity-legend">{legend_items}</div>'
+        f'<div class="activity-grid">{"".join(cards)}</div>'
+        '</section>'
+    )
 
 
-def inject_charts(html: str, end_date: date, db_path: str,
-                  repos: Iterable) -> str:
-    """Insert each repo's stat block right after its ``<h3>...</h3>`` heading.
+H2_RE = re.compile(r'(<h2>[^<]*AI Agent[^<]*</h2>)', re.IGNORECASE)
 
-    Match strategy: H3 inner text equals the repo's display_name (case- and
-    whitespace-insensitive). Unknown H3s are left alone.
-    """
-    import re
 
-    by_name: dict[str, str] = {}
-    for r in repos:
-        by_name[r.display_name.strip()] = r.full_name
-
-    pattern = re.compile(r"(<h3>)([^<]+)(</h3>)")
-
-    def repl(m: re.Match) -> str:
-        original = m.group(0)
-        text = m.group(2).strip()
-        full_name = by_name.get(text)
-        if not full_name:
-            return original
-        try:
-            block = render_repo_stats_html(full_name, end_date, db_path)
-        except Exception:
-            return original
-        return original + "\n" + block
-
-    return pattern.sub(repl, html)
+def inject_activity_panel(html: str, end_date: date, db_path: str, repos: Iterable) -> str:
+    """Insert the activity panel right after the tracked-repos section H2."""
+    repos_list = list(repos)
+    if not repos_list:
+        return html
+    panel = render_activity_panel_html(repos_list, end_date, db_path)
+    if not H2_RE.search(html):
+        return html
+    return H2_RE.sub(r"\1\n" + panel, html, count=1)
