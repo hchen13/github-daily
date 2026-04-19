@@ -140,19 +140,16 @@ def _log2_scale(v: int) -> float:
 
 def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
                            width: int = 520, height: int = 320) -> str:
-    """Cumulative activity chart. No y-axis; line-end avatar + label + value."""
-    # Compose per-repo daily totals (issues + prs + commits), then cumulative.
-    totals_by_repo: dict[str, list[int]] = {}
-    cumulative_by_repo: dict[str, list[int]] = {}
+    """Daily activity chart. Each point = that day's issues + PRs + commits.
+    No y-axis (log2 scale); line-end avatar + label + 7-day total."""
+    daily_sum_by_repo: dict[str, list[int]] = {}
     for repo in repos:
-        daily_total = [
+        daily_sum_by_repo[repo.full_name] = [
             daily["issues"][repo.full_name][i]
             + daily["prs"][repo.full_name][i]
             + daily["commits"][repo.full_name][i]
             for i in range(len(days))
         ]
-        totals_by_repo[repo.full_name] = daily_total
-        cumulative_by_repo[repo.full_name] = _cumulative(daily_total)
 
     # Layout — leave room on the right for avatar + label + value
     pad_top, pad_right, pad_bottom, pad_left = 20, 110, 32, 14
@@ -161,8 +158,8 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
     n = len(days)
     step = plot_w / max(n - 1, 1)
 
-    # Shared log2 scale across all repos
-    all_vals = [v for s in cumulative_by_repo.values() for v in s]
+    # Shared log2 scale across all repos (daily values)
+    all_vals = [v for s in daily_sum_by_repo.values() for v in s]
     max_log = max((_log2_scale(v) for v in all_vals), default=0)
     max_log = max(max_log, 1)
 
@@ -200,7 +197,7 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
     # Lines
     end_label_positions: list[tuple[float, object, str, int]] = []
     for idx, repo in enumerate(repos):
-        series = cumulative_by_repo[repo.full_name]
+        series = daily_sum_by_repo[repo.full_name]
         color = REPO_COLORS[idx % len(REPO_COLORS)]
         xy: list[tuple[float, float]] = []
         for i, v in enumerate(series):
@@ -220,7 +217,10 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         parts.append(
             f'<circle cx="{end_x:.2f}" cy="{end_y:.2f}" r="3" fill="{color}"/>'
         )
-        end_label_positions.append((end_y, repo, color, series[-1]))
+        # Label value = 7-day total for this repo (more meaningful at a glance
+        # than the latest day alone)
+        total_7d = sum(series)
+        end_label_positions.append((end_y, repo, color, total_7d))
 
     # Resolve vertical collisions between labels.
     end_label_positions.sort(key=lambda t: t[0])
@@ -276,7 +276,13 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         + "".join(parts)
         + '</svg>'
     )
-    return f'<div class="momentum-card"><div class="momentum-title">综合活跃度趋势 · 最近 7 日</div>{svg}</div>'
+    return (
+        '<div class="momentum-card">'
+        '<div class="momentum-title">每日活跃度 <span class="momentum-sub">'
+        'issues + PRs + commits · 线右数字为 7 日合计</span></div>'
+        f'{svg}'
+        '</div>'
+    )
 
 
 # ────────────────────────────────────────────────────────────────────────────

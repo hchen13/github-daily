@@ -153,6 +153,16 @@ body {
   color: var(--black);
   letter-spacing: -0.15px;
   margin-bottom: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.publication .momentum-sub {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--gray-48);
+  letter-spacing: -0.1px;
 }
 .publication .momentum-chart {
   display: block;
