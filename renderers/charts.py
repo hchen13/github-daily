@@ -246,11 +246,15 @@ def _render_momentum_chart(repos: Sequence, daily: dict, days: list[str],
         )
         avatar_size = 22
         if avatar_uri:
+            # Inline CSS clip-path works in Chromium SVG; the attribute-form
+            # `clip-path="circle(...)"` is NOT the same syntax and silently
+            # fails, leaving squares.
             parts.append(
                 f'<image href="{avatar_uri}" x="{label_x:.2f}" '
                 f'y="{target - avatar_size/2:.2f}" '
                 f'width="{avatar_size}" height="{avatar_size}" '
-                f'clip-path="circle({avatar_size/2}px at {avatar_size/2}px {avatar_size/2}px)"/>'
+                f'preserveAspectRatio="xMidYMid slice" '
+                f'style="clip-path: circle(50%);"/>'
             )
         text_x = label_x + avatar_size + 6
         parts.append(
@@ -458,10 +462,13 @@ def _render_kpi_card(key: str, title: str, icon_svg: str, tone: str,
         f'<div class="kpi-icon">{icon_svg}</div>'
         f'<div class="kpi-title">{escape(title)}</div>'
         f'</div>'
-        f'<div class="kpi-row">'
+        f'<div class="kpi-body">'
         f'<div class="kpi-value">{total}</div>'
+        f'<div class="kpi-delta-wrap">'
         f'<div class="kpi-delta kpi-delta-{delta_cls}">'
-        f'<span class="arrow">{arrow}</span>{abs(delta)}<small>vs 昨日</small>'
+        f'<span class="arrow">{arrow}</span>{abs(delta)}'
+        f'</div>'
+        f'<div class="kpi-delta-sub">vs 昨日</div>'
         f'</div>'
         f'</div>'
         f'{spark}'

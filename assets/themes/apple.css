@@ -154,10 +154,10 @@ body {
   height: auto;
 }
 
-/* --- Signal Brief (4 computed cards) --- */
+/* --- Signal Brief (4 computed cards, 2×2 at publication width) --- */
 .publication .signal-brief {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 .publication .signal-card {
@@ -251,20 +251,12 @@ body {
   color: var(--gray-80);
   letter-spacing: -0.1px;
 }
-.publication .kpi-row .kpi-row,
-.publication .kpi-card .kpi-row {
-  /* the internal row inside a card */
+.publication .kpi-body {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 4px;
-}
-.publication .kpi-card > .kpi-row {
-  display: flex;
-  align-items: baseline;
   gap: 8px;
-  justify-content: space-between;
+  margin-bottom: 4px;
 }
 .publication .kpi-value {
   font-family: var(--font-display);
@@ -272,22 +264,28 @@ body {
   font-weight: 600;
   letter-spacing: -0.4px;
   color: var(--black);
-  line-height: 1;
+  line-height: 1.05;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.publication .kpi-delta-wrap {
+  text-align: right;
+  white-space: nowrap;
+  line-height: 1.1;
 }
 .publication .kpi-delta {
-  font-size: 12px;
+  font-size: 13px;
   font-family: ui-monospace, Menlo, monospace;
   font-variant-numeric: tabular-nums;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
+  font-weight: 600;
+  white-space: nowrap;
 }
-.publication .kpi-delta small {
+.publication .kpi-delta-sub {
   font-size: 10px;
   color: var(--gray-48);
   font-family: var(--font-text);
-  margin-left: 2px;
+  margin-top: 1px;
+  white-space: nowrap;
 }
 .publication .kpi-delta-up   { color: #1f7a39; }
 .publication .kpi-delta-down { color: #c8363e; }
