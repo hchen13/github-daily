@@ -21,7 +21,7 @@ import logging
 import subprocess
 import sys
 import time
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -85,9 +85,60 @@ def load_trending(trending_dir: Path, target_date: date) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+COMPARE_MIN_DAYS = 7
+COMPARE_MAX_DAYS = 30
+
+
+def find_comparison_trending(trending_dir: Path,
+                             target_date: date) -> Optional[tuple[int, dict]]:
+    """Find the nearest historical trending JSON at least 7 days old.
+
+    Walks backwards from target_date - 7 days up to target_date - 30 days.
+    Returns (days_ago, trending_dict) for the first hit, or None if nothing
+    in that window exists.
+    """
+    for days in range(COMPARE_MIN_DAYS, COMPARE_MAX_DAYS + 1):
+        day = target_date - timedelta(days=days)
+        path = trending_dir / f"{day.isoformat()}.json"
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                return days, data
+            except json.JSONDecodeError:
+                continue
+    return None
+
+
+def relative_time_phrase(days_ago: int) -> str:
+    """Map a day count (>= 7) to a human phrase in Chinese.
+
+    The editor will reference time in prose — we want it to say "一周前"
+    when comparing a 7-day gap, "近两周前" for 11-13 days, etc., rather than
+    always repeating "一周前" even when the snapshot is two weeks old.
+    """
+    if days_ago <= 8:
+        return "一周前"
+    if days_ago <= 10:
+        return "一周多前"
+    if days_ago <= 13:
+        return "近两周前"
+    if days_ago == 14:
+        return "两周前"
+    if days_ago <= 17:
+        return "两周多前"
+    if days_ago <= 20:
+        return "近三周前"
+    if days_ago == 21:
+        return "三周前"
+    if days_ago <= 27:
+        return "三周多前"
+    return "近一个月前"
+
+
 def build_user_prompt(target_date: date, repos: list[RepoConfig],
                       narratives: dict[str, str], trending: dict,
-                      reviews: dict[str, dict]) -> str:
+                      reviews: dict[str, dict],
+                      comparison: Optional[tuple[int, dict]] = None) -> str:
     parts: list[str] = [f"Date: {target_date.isoformat()}", ""]
 
     parts.append("=" * 72)
@@ -143,12 +194,45 @@ def build_user_prompt(target_date: date, repos: list[RepoConfig],
             parts.append(f"EVALUATION: {review.get('evaluation', '')}")
 
     parts.append("")
+
+    if comparison:
+        days_ago, past = comparison
+        phrase = relative_time_phrase(days_ago)
+        past_date = (target_date - timedelta(days=days_ago)).isoformat()
+        past_weekly = [r for r in past.get("repos", [])
+                       if "weekly_top10" in r.get("lists", [])]
+        past_weekly.sort(key=lambda r: r.get("rank", {}).get("weekly_top10", 999))
+
+        parts.append("=" * 72)
+        parts.append(f"历史对比快照 ({phrase} / {past_date} / 距今 {days_ago} 天)")
+        parts.append("=" * 72)
+        parts.append("")
+        parts.append(f'在「一览」段落里讲到社区风向那一块时，用"{phrase}"这个说法，'
+                     "带出对比——提炼整体共性的变化，看社区注意力有没有在转移。")
+        parts.append("不要逐个复述旧榜单项目。")
+        parts.append("")
+        parts.append(f"{phrase}（{past_date}）Weekly Top 10：")
+        for r in past_weekly:
+            rank = r.get("rank", {}).get("weekly_top10", "?")
+            desc = r.get("description") or "(no description)"
+            lang = r.get("language") or "-"
+            parts.append(f"  #{rank} {r['full_name']} [{lang}] — {desc}")
+        parts.append("")
+    else:
+        parts.append("=" * 72)
+        parts.append("历史对比快照：暂无")
+        parts.append("=" * 72)
+        parts.append("")
+        parts.append("（最近 7-30 天内没有足够旧的 trending 快照做对比——"
+                     "「一览」里讲社区风向时就只聊今天的共性和注意力方向，不要强行引入对比。）")
+        parts.append("")
+
     parts.append("=" * 72)
     parts.append("任务")
     parts.append("=" * 72)
     parts.append(
         "按 system prompt 给的模板输出今日刊物 Markdown。"
-        "记住：判断先行、不要 issue/PR 编号、允许平淡、weekly top 10 表格的'一句点评'每条不超过 30 字。"
+        "记住：判断先行、不要 issue/PR 编号、允许平淡。"
     )
 
     return "\n".join(parts)
@@ -223,11 +307,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     narratives = load_narratives(cfg.storage.db_path, cfg.enabled_repos, args.date)
     trending = load_trending(Path(cfg.storage.trending_dir), args.date)
     reviews = load_trending_reviews(Path("data/trending_reviews"), trending.get("repos", []))
+    comparison = find_comparison_trending(Path(cfg.storage.trending_dir), args.date)
 
-    logger.info("Loaded: %d narratives, %d trending repos, %d reviews",
-                len(narratives), len(trending.get("repos", [])), len(reviews))
+    logger.info("Loaded: %d narratives, %d trending repos, %d reviews, comparison=%s",
+                len(narratives), len(trending.get("repos", [])), len(reviews),
+                f"{comparison[0]}d ago" if comparison else "none")
 
-    user_prompt = build_user_prompt(args.date, cfg.enabled_repos, narratives, trending, reviews)
+    user_prompt = build_user_prompt(args.date, cfg.enabled_repos, narratives,
+                                    trending, reviews, comparison)
 
     if args.dry_run:
         print(user_prompt)

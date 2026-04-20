@@ -1,24 +1,24 @@
 {
   "full_name": "microsoft/markitdown",
-  "reviewed_at": "2026-04-19T04:45:13Z",
-  "model": "claude-opus-4-7",
-  "duration_s": 107.6,
-  "intro": "微软 AutoGen 团队出品的 Python 工具库，把 PDF/Office/HTML/音图/YouTube 等常见文件统一转成 Markdown，面向 LLM 前置管线和 RAG 预处理场景。",
+  "reviewed_at": "2026-04-20T03:13:02Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 89.2,
+  "total_lines": 15857,
+  "intro": "把 PDF、Office 文档、音频、网页、Jupyter Notebook 等二十余种格式统一转成 Markdown 的 Python 工具库，面向需要给 LLM pipeline 提供干净文本输入的开发者。",
   "tech_stack": [
-    "Python 3.10+（hatchling 打包，monorepo 四包）",
-    "核心依赖：beautifulsoup4、markdownify、magika（mimetype 探测）、charset-normalizer、defusedxml",
-    "格式适配：pdfminer.six + pdfplumber、python-pptx、mammoth、openpyxl/pandas、olefile、pydub、youtube-transcript-api",
-    "可选 Azure AI Document Intelligence（企业 PDF）",
-    "MCP server 子包（`mcp~=1.8.0`）",
-    "entry_points 插件机制（`markitdown.plugin` group）"
+    "Python 3.10+，hatchling 构建",
+    "magika 0.6.1（Google ML 文件类型识别）+ charset-normalizer",
+    "pdfminer.six + pdfplumber（PDF 双路提取）",
+    "beautifulsoup4 + markdownify（HTML 转 Markdown）",
+    "mammoth / python-pptx / pandas + openpyxl（Office 格式）",
+    "MCP 1.8（markitdown-mcp 子包）/ Azure AI Document Intelligence（可选）"
   ],
-  "scale": "Python monorepo，四个子包：`markitdown` 核心（~4.6k 行，含 20+ 个 converter，单个 PDF converter 近 600 行）、`markitdown-mcp`（薄 MCP server 壳，~140 行）、`markitdown-ocr`（LLM vision OCR 插件，~2k 行）、`markitdown-sample-plugin`。全仓约 1.1 万行 Python。结构成熟：统一的 `DocumentConverter` ABC（accepts/convert 两方法，流式不落盘），带优先级注册表、插件发现、完整 tests 目录。版本 0.1.6b2，仍标 Beta，最新 commit 2026-04-15（HTML 递归栈溢出修复 #1644），维护活跃。",
-  "scale_tag": "中型 monorepo ~11k 行",
+  "scale": "monorepo 四包结构：核心库 `markitdown`、MCP server 包 `markitdown-mcp`、OCR 插件 `markitdown-ocr`、参考插件 `markitdown-sample-plugin`。核心 src 约 5,450 行 Python，20+ 个独立 converter 文件，附完整测试集和 CI workflow，PyPI 分类标注 Beta（4 - Beta），维护状态靠外部 GitHub 活跃度判断。",
+  "scale_tag": "",
   "tech_tags": [
-    "Python",
-    "20+ 格式转换器",
-    "MCP server"
+    "20+ 格式统一转 Markdown",
+    "MCP Server + entry_points 插件系统"
   ],
-  "verdict": "LLM 文件预处理里最务实的那一类工具，结构干净、格式覆盖全，但 PDF 精度受限于传统解析器。",
-  "evaluation": "严肃工程，不是玩具。微软 AutoGen 团队的亲儿子，API 设计能看出做过几轮：`DocumentConverter` 的 accepts/convert 分离、优先级注册、0.1.0 那次把路径改成 BinaryIO stream（README 明写的 breaking change）——这些都是跑过真实场景才会做的决定。用 magika 做 mimetype 探测、用 entry_points 暴露插件组、MCP server 单拆一个子包，该解耦的都解耦了。覆盖广度很扎实：PDF/Office 三件套/EPUB/msg/zip/ipynb/YouTube/Wikipedia/Bing SERP/RSS 全有，OCR 和 Azure Document Intelligence 走可选依赖，不绑架核心。真正的限制在 PDF——默认管线是 pdfminer.six + pdfplumber，扫描件和复杂版式基本无能为力，要精度就得上 `markitdown-ocr`（LLM vision，烧 token）或 Azure DI（烧钱）。和 Docling 那种上 layout 模型的路线比，它走的是\"轻量+格式多\"而不是\"PDF 精度\"。适合做 RAG/agent 前置清洗、吞吐量优先的场景；做法律/财务那种需要版面保真的扫描文档，不适合。插件机制清晰，想扩自己的格式很容易接。版本号还卡在 0.1.6b2 Beta，短期内 API 可能还会动。"
+  "verdict": "微软出品的文档转 Markdown 基础库，工程结构扎实、插件机制干净；依赖链不轻，图像/音频路径需要外部 LLM 或 API，不是开箱即用的零配置工具。",
+  "evaluation": "严肃工程，不是 wrapper。作者 Adam Fourney 是微软研究院的，设计意图明确：给 RAG / LLM pipeline 提供统一的文本入口，36k star 说明这个需求是真实的。\n\n真正有意思的地方在细节。PDF 处理分两路——先用 pdfplumber 做表格感知提取，这段代码写得有些认真：用所有行 x 坐标的 70th percentile gap 作为自适应列聚类 tolerance，最终判断一页是\"form-style\"还是\"prose\"，失败再回退 pdfminer。这不是随便拼的，至少说明 PDF 表格这个坑被认真踩过。文件类型识别换掉了纯 MIME/扩展名的做法，用了 Google 的 magika（ML 模型），能处理扩展名缺失或伪造的情况。插件系统走 Python 标准 `entry_points` 机制，`markitdown-ocr` 和 `markitdown-sample-plugin` 都是干净的参考实现。\n\n限制要说清楚。`[all]` 依赖组一装就拉进来十几个包，环境不轻。音频转录走 SpeechRecognition 本地识别，不是 Whisper，质量存疑。图像描述和 OCR 插件都需要你自己传 OpenAI-compatible 的 `llm_client`，不是开箱即用。markitdown-ocr 本质上是把图片截出来调 LLM vision API，不是本地 OCR。\n\n同赛道里，IBM 的 docling 精度和结构化输出更强，markitdown 胜在接口简单、上手快。RAG 预处理场景值得跟进，但对精度要求高的 PDF 场景建议先对比测试。"
 }

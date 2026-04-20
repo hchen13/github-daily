@@ -45,6 +45,28 @@ def _extract_weekly_delta(raw: Optional[str]) -> Optional[str]:
     return f"+{m.group(1)}" if m else raw
 
 
+def _format_sloc(n: int) -> str:
+    """Human-readable line count: '380 行' / '~2.3k 行' / '~45k 行' / '~2M 行'."""
+    if n < 1_000:
+        return f"{n} 行"
+    if n < 10_000:
+        return f"~{n / 1000:.1f}k 行"
+    if n < 1_000_000:
+        return f"~{n // 1000}k 行"
+    return f"~{n / 1_000_000:.1f}M 行"
+
+
+def _sloc_bucket(n: int) -> str:
+    """Bucket class for coloring the size chip (sm/md/lg/xl)."""
+    if n < 3_000:
+        return "sm"
+    if n < 30_000:
+        return "md"
+    if n < 200_000:
+        return "lg"
+    return "xl"
+
+
 def load_trending(trending_dir: Path, target_date: date) -> Optional[dict]:
     path = trending_dir / f"{target_date.isoformat()}.json"
     if not path.exists():
@@ -89,13 +111,24 @@ def _render_card(repo: dict, review: dict, rank_label: str,
     )
     if delta:
         chips_html += f'<span class="chip delta">{escape(delta)} {delta_suffix}</span>'
-    scale_tag = (review.get("scale_tag") or "").strip()
-    if scale_tag:
-        chips_html += f'<span class="chip scale">{escape(scale_tag)}</span>'
+
+    # Size chip: programmatic from total_lines (set by reviewer); skip if missing.
+    sloc = review.get("total_lines")
+    if isinstance(sloc, int) and sloc > 0:
+        chips_html += (
+            f'<span class="chip size size-{_sloc_bucket(sloc)}">'
+            f'{escape(_format_sloc(sloc))}</span>'
+        )
+
+    # Language chip: always show, fixed from GitHub metadata.
+    if language and language != "—":
+        chips_html += f'<span class="chip language">{escape(language)}</span>'
+
+    # Tech tags: keep 2, deduplicate against the language chip.
     tech_tags = review.get("tech_tags") or []
-    if not tech_tags and language and language != "—":
-        tech_tags = [language]
-    for tag in tech_tags[:3]:
+    lang_lower = (language or "").lower()
+    tech_tags = [t for t in tech_tags if t and t.lower() != lang_lower]
+    for tag in tech_tags[:2]:
         chips_html += f'<span class="chip tech">{escape(tag)}</span>'
 
     owner, _, name = full_name.partition("/")

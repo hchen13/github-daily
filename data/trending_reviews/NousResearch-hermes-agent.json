@@ -1,24 +1,24 @@
 {
   "full_name": "NousResearch/hermes-agent",
-  "reviewed_at": "2026-04-19T04:43:24Z",
-  "model": "claude-opus-4-7",
-  "duration_s": 77.3,
-  "intro": "Nous Research 出品的自托管 AI agent 框架，一个 Python 进程接入十几种 IM（Telegram/Discord/Slack/飞书/钉钉/微信 等）与几十种 LLM 后端，自带 skills 体系、cron、RL 训练挂钩。",
+  "reviewed_at": "2026-04-20T03:10:00Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 115.2,
+  "total_lines": 829304,
+  "intro": "一个自托管的多模型 agentic 框架：本地 CLI、消息平台 gateway（Telegram/Discord/Slack/Feishu 等 15+ 平台）和 OpenAI 兼容 API 三种运行模式，后端可挂 OpenAI、Anthropic、Gemini、Bedrock、本地 Ollama 等任意 provider，附带 Skills Hub 让 agent 从 GitHub 安装新能力。",
   "tech_stack": [
-    "Python 3.11+",
-    "OpenAI / Anthropic SDK + OpenRouter / Bedrock / Mistral 等多厂商适配层",
-    "消息网关：python-telegram-bot、discord.py、slack-bolt、mautrix、lark-oapi、dingtalk-stream",
-    "prompt_toolkit（交互 TUI）、pydantic、httpx、FastAPI 网关",
-    "faster-whisper / edge-tts / elevenlabs（语音）",
-    "Atropos + Tinker（RL 训练，可选）、MCP、Modal / Daytona 云运行时"
+    "Python 3.11+，OpenAI SDK 作内部协议，Anthropic SDK 做适配",
+    "OpenRouter / Nous Portal 聚合入口",
+    "Rich + prompt_toolkit（CLI）；FastAPI + uvicorn（API server / web）",
+    "SQLite FTS5（session 存储）；Playwright headless（浏览器工具）",
+    "执行环境：local / Docker / SSH / Modal / Daytona / Singularity",
+    "Nix flake（可复现构建）"
   ],
-  "scale": "Python 单语言大型单体仓：964 个 .py 文件、约 45 万行，`run_agent.py` 一个文件 1.2 万行，`cli.py` 1.05 万行，主逻辑高度集中在少数超大文件里。目录结构是多子包（agent / tools / gateway / skills / hermes_cli / cron 等）但不是真正的 monorepo 拆分。测试 50 个目录、pytest-xdist 跑。已发到 v0.10.0，昨天刚合 gateway 竞态 bug 的 fix，维护活跃。",
-  "scale_tag": "大型单体 45 万行",
+  "scale": "名副其实的大型项目——run_agent.py 单文件 12,218 行，cli.py 10,582 行；tools/ 下 45+ 文件、gateway/platforms 下 15 个平台适配共 33k 行；tests/ 下 52 个目录/文件，有正式 pytest 体系。v0.10.0 于 2026-04-16 发布，含 180+ commits；v0.2.0 到 v0.10.0 均有完整 RELEASE 文档，维护状态活跃。",
+  "scale_tag": "",
   "tech_tags": [
-    "Python 多厂商 agent",
-    "15+ IM 平台网关",
-    "Nous Research"
+    "Skills Hub 自装配",
+    "15+ 平台 Gateway"
   ],
-  "verdict": "Nous Research 把 agent 做成\"跑在 VPS 上、从手机 IM 调\"的产品形态，工程体量大、覆盖面惊人，但核心文件过胖、\"自我进化\"是包装词。",
-  "evaluation": "这是一个严肃的工程项目，不是 wrapper，但也没到它自己宣传得那么\"革命\"。真正值得看的点是**形态选择**——把 agent 从\"IDE 插件 / 笔记本命令行\"搬成\"一个在服务器上常驻、从 Telegram/Discord/飞书/钉钉/微信 跟你对话\"的进程，十几种 IM 的 adapter 都在 `gateway/platforms/` 下真写了，不是 stub；LLM 后端也铺得很全（OpenAI、Anthropic、Bedrock、OpenRouter、NVIDIA NIM、z.ai、Kimi、MiMo 以及 Nous 自家 Portal），切换靠 `hermes model` 无代码改动。这个\"跨 IM + 跨模型\"的覆盖度目前没看到直接对手。skills、cron、子 agent 委派、Atropos/Tinker RL 训练数据生成，也都不是 PPT。门槛不低：自托管、需要自己搞模型 API key、Android 要走 Termux、Windows 只支持 WSL2、消息平台每家都要自己过 setup。需要警惕的硬伤是代码结构：`run_agent.py` 12113 行、`cli.py` 10570 行，一个文件塞一切，后续重构成本会很高；README 里\"self-improving / closed learning loop\"的措辞具体落下来就是 skills 文件的增删，不是权重意义上的学习，别被营销词骗过去。定位是 OpenClaw 的继任者（项目里专门做了迁移命令），适合想\"自己家里跑一个长驻 agent、用 IM 指挥它干活\"的重度用户，不适合只想 IDE 里补全代码的人——那场景 Claude Code / Codex 更直接。"
+  "verdict": "严肃的自托管 agent 框架，Skills Hub 和多平台 gateway 是真正的差异点，但单文件代码量极大、配置量(.env.example 18KB)暗示入门成本不低。",
+  "evaluation": "hermes-agent 不是任何商业 agent 的包皮，是自成体系的框架工程。\n\n最值得看的设计选择：内部统一走 OpenAI 格式，Anthropic/Gemini/Bedrock/Mistral 全部走 adapter 转译（`agent/anthropic_adapter.py`、`agent/bedrock_adapter.py`、`agent/gemini_native_adapter.py`……）。切 provider 不需要动逻辑层，这是清醒的架构判断。\n\n两个真正的差异点——\n\n**Skills Hub**：agent 可从 GitHub 安装\"技能\"（YAML frontmatter + SKILL.md），`tools/skills_guard.py` 做内容扫描，lock 文件追踪来源 hash，有 quarantine 机制。内置 skills/ 已有 27 个分类，从 `apple-reminders` 到 `red-teaming` 都实装了。不是 README 承诺，是 3,053 行的 `tools/skills_hub.py` 撑着的。\n\n**Gateway 层**：`gateway/platforms/` 下实现了 Telegram、Discord、Slack、WhatsApp、Feishu、飞书评论、DingTalk、微信、企微、Signal、Matrix、Mattermost、Webhook、SMS、BlueBubbles，共 15 种平台适配，总计 33k 行。LRU session cache（`_AGENT_CACHE_MAX_SIZE = 128`）+ idle TTL eviction 都有——不是\"宣称支持多平台\"，是真的做了。\n\n要正视的问题：run_agent.py 12k 行是工程债。context_compressor.py 的设计（Resolved/Pending tracking、iterative summary、tool output pruning pre-pass）质量很高，但藏在一个过于臃肿的入口文件旁边。供应链安全意识到位——pyproject.toml 里依赖版本区间旁边直接注释 CVE 编号（CVE-2026-25645、CVE-2026-32597）。\n\nRL 训练集成（Atropos + Tinker）是 Nous Research 自家研究课题，目前看是实验阶段；对普通用户不是 day-1 能用的能力。\n\n**适合谁**：想自托管多模型 agent 并对接多个消息平台的团队；研究 agent 架构（尤其是 context compression 和 Skills 体系）的开发者。**不适合谁**：想快速上个人助手的用户——Claude Code 或 Cursor 没有这个配置负担。"
 }

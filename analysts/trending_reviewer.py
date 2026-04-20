@@ -101,6 +101,75 @@ def clone_repo(full_name: str) -> Optional[Path]:
     return dest
 
 
+# Extensions we skip entirely when counting lines (obvious binaries / assets).
+_BINARY_EXTS = {
+    ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".bmp", ".svg",
+    ".pdf", ".psd", ".ai", ".sketch", ".fig", ".xcf",
+    ".zip", ".tar", ".gz", ".bz2", ".xz", ".7z", ".rar", ".jar", ".war",
+    ".woff", ".woff2", ".ttf", ".eot", ".otf",
+    ".mp4", ".mp3", ".wav", ".mov", ".avi", ".webm", ".m4a", ".flac",
+    ".bin", ".exe", ".dll", ".so", ".dylib", ".o", ".a", ".class",
+    ".wasm", ".db", ".sqlite", ".sqlite3",
+    ".pb", ".pt", ".onnx", ".safetensors", ".ckpt", ".pkl", ".npy", ".npz",
+}
+_MAX_FILE_BYTES = 5_000_000  # skip very large single files (likely data dumps)
+
+
+def count_sloc(clone_path: Path) -> int:
+    """Count lines across all tracked files, excluding binaries + huge files.
+
+    Uses ``git ls-files`` so .gitignore'd paths (node_modules, dist, .venv) are
+    already excluded. Per-file filters:
+    - skip by extension (images, archives, fonts, media, model weights)
+    - skip any file whose first 8KB contains NUL byte (binary heuristic)
+    - skip files larger than 5MB
+
+    Returns total newline count; 0 on any failure (we'd rather render no chip
+    than a wrong one).
+    """
+    try:
+        result = subprocess.run(
+            ["git", "ls-files"],
+            cwd=clone_path,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except Exception as e:
+        logger.warning("git ls-files failed in %s: %s", clone_path, e)
+        return 0
+    if result.returncode != 0:
+        return 0
+
+    total = 0
+    for rel in result.stdout.splitlines():
+        rel = rel.strip()
+        if not rel:
+            continue
+        p = clone_path / rel
+        if not p.is_file():
+            continue
+        if p.suffix.lower() in _BINARY_EXTS:
+            continue
+        try:
+            size = p.stat().st_size
+            if size > _MAX_FILE_BYTES:
+                continue
+            with open(p, "rb") as f:
+                sample = f.read(8192)
+                if b"\x00" in sample:
+                    continue
+                total += sample.count(b"\n")
+                while True:
+                    chunk = f.read(65536)
+                    if not chunk:
+                        break
+                    total += chunk.count(b"\n")
+        except Exception:
+            continue
+    return total
+
+
 SECTION_RE = re.compile(
     r"^(INTRO|TECH_STACK|SCALE|SCALE_TAG|TECH_TAGS|VERDICT|EVALUATION)\s*:\s*$",
     re.MULTILINE,
@@ -202,14 +271,17 @@ def run_reviewer(full_name: str, clone_path: Path, claude_bin: str, model: str) 
                      full_name, debug_path, raw[:200])
         return None
 
+    sloc = count_sloc(clone_path)
+
     review = {
         "full_name": full_name,
         "reviewed_at": _iso_utc(datetime.now(timezone.utc)),
         "model": model,
         "duration_s": round(duration, 1),
+        "total_lines": sloc,
         **parsed,
     }
-    logger.info("[%s] reviewer done in %.1fs", full_name, duration)
+    logger.info("[%s] reviewer done in %.1fs, sloc=%d", full_name, duration, sloc)
     return review
 
 

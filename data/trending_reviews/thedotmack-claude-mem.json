@@ -1,24 +1,24 @@
 {
   "full_name": "thedotmack/claude-mem",
-  "reviewed_at": "2026-04-19T04:45:03Z",
-  "model": "claude-opus-4-7",
-  "duration_s": 105.2,
-  "intro": "给 Claude Code 装一套持久化记忆：通过生命周期 hook 把会话观察写入本地 SQLite + Chroma 向量库，下次会话以 MCP 工具按需检索。",
+  "reviewed_at": "2026-04-20T03:09:32Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 89.3,
+  "total_lines": 157582,
+  "intro": "给 Claude Code（以及 Cursor、Gemini CLI）用的跨会话持久记忆插件：通过 5 个生命周期 hook 截获工具调用，由后台 daemon 驱动一个只读 Claude 子进程将原始记录压缩成结构化 observation，写入本地 SQLite，下次会话开头注入相关历史上下文。",
   "tech_stack": [
-    "TypeScript + Node.js 18+（Bun 做 worker 运行时）",
-    "@anthropic-ai/claude-agent-sdk + @modelcontextprotocol/sdk",
-    "SQLite（bun:sqlite，FTS5 全文）+ Chroma 向量库混合检索",
-    "Express HTTP worker（:37777）+ SSE 广播",
-    "React 18 Web viewer（viewer-template.html）",
-    "esbuild 打包，插件以 Claude Code plugin / npx CLI 双形态分发"
+    "TypeScript / Node.js + Bun",
+    "`@anthropic-ai/claude-agent-sdk`（observer 子进程）",
+    "`@modelcontextprotocol/sdk`（MCP 双向通信）",
+    "SQLite（本地持久化）",
+    "ChromaDB（可选语义搜索，via MCP stdio）",
+    "Express + React（port 37777 本地 viewer UI）"
   ],
-  "scale": "TypeScript 为绝对主力，src/ 约 4.7 万行、plugin/ 脚本层约 5k 行、openclaw/ragtime 两个子包各自独立，外加 ~240 个源文件和 39 个测试目录——是标准的中型 monorepo 结构。维护极度活跃：当前 v12.2.0，CHANGELOG 显示从 2026-02 到 2026-04 发了 30+ 个版本，4 月单月就有 8 个发布，最近一次提交在三天内。",
-  "scale_tag": "中型多栈 monorepo",
+  "scale": "214 个 TypeScript 源文件，结构成熟——按 hooks / services / worker / supervisor / sdk / cli 层拆分，`worker-service.ts` 注释里自述\"从 2000 行重构为 ~300 行 orchestrator\"。版本号 v12.3.0，changelog 显示近几天每天多个 release，今日（2026-04-20）刚发布。维护极度活跃，属个人主导的高频项目。",
+  "scale_tag": "",
   "tech_tags": [
-    "TypeScript + Bun",
-    "MCP + SQLite/Chroma",
-    "Claude Code 插件"
+    "Claude Agent SDK observer",
+    "SQLite + ChromaDB 双写"
   ],
-  "verdict": "严肃工程的 Claude Code 记忆层，架构清晰、迭代凶猛，但安装会拉起本地常驻 worker、Bun、uv、向量库，门槛不算低。",
-  "evaluation": "这是一个认真在做的工程项目，不是 wrapper。看源码能看出几个真东西：MCP server 只做 stdio 协议转发，业务逻辑全部走本地 :37777 worker（Express + SSE），SQLite 层有正经的 migrations/FTS5/timeline service，向量检索走 Chroma + SQLite 混合策略，还把 search 切成\"索引 → 时间轴 → 全文\"三层——这个 token 成本意识在同类记忆插件里算少见。代码组织、测试覆盖（39 个测试目录，涵盖 hook 生命周期、SQLite、SDK agent、worker spawn）、多 agent backend（SDK/Gemini/OpenRouter fallback）都说明作者知道自己在做什么。发版节奏吓人，两个月 30+ 版本、刚完成 v11→v12 大重构，好处是 bug 修得快，坏处是锁版本得谨慎，每次升级 breaking 概率不低。门槛方面诚实说：要跑 Bun、装 uv、起本地 Python 向量库、占端口 37777，还有 AGPL-3.0 这个许可证，企业场景绕不过去。适合重度 Claude Code 用户自己装来试；团队或合规环境先看清 AGPL 再决定。新意不是\"记忆\"本身——这个方向已经有一堆人做——而是三层渐进检索和 hook + worker 分离的工程化程度。"
+  "verdict": "目前 Claude Code 记忆系统里工程完成度最高的实现，但安装链不短——Bun + uv + Python + 后台 daemon 缺一不可。",
+  "evaluation": "这是一个认真做的工程项目，不是营销 wrapper。核心机制有一个真正聪明的地方：它起了第二个 Claude 子进程作\"观察者\"，所有工具（Bash / Read / Write / Grep / Task 等）全部 disallow，只让它读 PostToolUse 事件流、输出 `<observation>` XML。这个设计避免了\"记忆 agent 反过来操作文件\"的死循环，代价是每次工具调用都在后台多烧一次 token。架构上真的处理了细节：Windows 退出码兼容（exit 0 防止终端标签堆积）、worktree 合并（branch merge 后 observation 归还父 project）、孤儿进程回收（Issue #737 专门修过）、Gemini / OpenRouter 降级链。最新版加了 SWE-bench 测评 harness，说明作者有心量化记忆对实际解题率的影响，而不是只做演示。\n\n适合谁：Claude Code 重度用户、多会话工作流里反复交待相同上下文觉得烦的人。不适合谁：对 AGPL-3.0 敏感的商业场景，或者不想在本机常驻 daemon + Python 运行时的环境。Pro 功能\"即将推出\"的措辞暗示未来走 freemium，现在是全量开源，窗口期值得跟进。"
 }

@@ -1,0 +1,333 @@
+{
+  "date": "2026-04-20",
+  "generated_at": "2026-04-20T00:41:55Z",
+  "source": "github.com/trending",
+  "counts": {
+    "daily_top": 1,
+    "weekly_top": 10,
+    "unique_repos": 11
+  },
+  "repos": [
+    {
+      "full_name": "Fincept-Corporation/FinceptTerminal",
+      "owner": "Fincept-Corporation",
+      "name": "FinceptTerminal",
+      "url": "https://github.com/Fincept-Corporation/FinceptTerminal",
+      "description": "FinceptTerminal is a modern finance application offering advanced market analytics, investment research, and economic data tools, designed for interactive exploration and data-driven decision-making in a user-friendly environment.",
+      "language": "Python",
+      "stars": 6544,
+      "stars_gained_daily": "1,254 stars today",
+      "stars_gained_weekly": null,
+      "created_at": "2024-08-29T14:38:08Z",
+      "pushed_at": "2026-04-18T21:56:07Z",
+      "topics": [
+        "bloomberg-terminal",
+        "finance",
+        "financial-markets",
+        "investing",
+        "investment",
+        "investment-research",
+        "machine-learning",
+        "python",
+        "quantitative-finance",
+        "stock-market",
+        "stocks",
+        "contributions-welcome",
+        "foss",
+        "opensource",
+        "good-first-issue",
+        "help-wanted"
+      ],
+      "homepage": "https://fincept.in",
+      "readme_excerpt": "State-of-the-art financial intelligence platform with CFA-level analytics, AI automation, and unlimited data connectivity.",
+      "lists": [
+        "daily_top1"
+      ],
+      "rank": {
+        "daily_top1": 1
+      }
+    },
+    {
+      "full_name": "forrestchang/andrej-karpathy-skills",
+      "owner": "forrestchang",
+      "name": "andrej-karpathy-skills",
+      "url": "https://github.com/forrestchang/andrej-karpathy-skills",
+      "description": "A single CLAUDE.md file to improve Claude Code behavior, derived from Andrej Karpathy's observations on LLM coding pitfalls.",
+      "language": null,
+      "stars": 61374,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "45,381 stars this week",
+      "created_at": "2026-01-27T03:53:13Z",
+      "pushed_at": "2026-04-18T17:51:53Z",
+      "topics": [],
+      "homepage": null,
+      "readme_excerpt": "> Check out my new project [Multica](https://github.com/multica-ai/multica) — an open-source platform for running and managing coding agents with reusable skills. > Follow me on X: [https://x.com/jiayuan_jy](https://x.com/jiayuan_jy)",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 1
+      }
+    },
+    {
+      "full_name": "NousResearch/hermes-agent",
+      "owner": "NousResearch",
+      "name": "hermes-agent",
+      "url": "https://github.com/NousResearch/hermes-agent",
+      "description": "The agent that grows with you",
+      "language": "Python",
+      "stars": 102111,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "38,194 stars this week",
+      "created_at": "2025-07-22T22:22:28Z",
+      "pushed_at": "2026-04-20T00:41:29Z",
+      "topics": [
+        "ai",
+        "ai-agent",
+        "ai-agents",
+        "llm",
+        "anthropic",
+        "chatgpt",
+        "claude",
+        "claude-code",
+        "clawdbot",
+        "codex",
+        "hermes",
+        "hermes-agent",
+        "moltbot",
+        "nous-research",
+        "openai",
+        "openclaw"
+      ],
+      "homepage": "https://hermes-agent.nousresearch.com",
+      "readme_excerpt": "**The self-improving AI agent built by [Nous Research](https://nousresearch.com).** It's the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or serverless infrastructure that costs nearly nothing when idle. It's not tied to your laptop — talk to it from Telegram while it…",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 2
+      }
+    },
+    {
+      "full_name": "thedotmack/claude-mem",
+      "owner": "thedotmack",
+      "name": "claude-mem",
+      "url": "https://github.com/thedotmack/claude-mem",
+      "description": "A Claude Code plugin that automatically captures everything Claude does during your coding sessions, compresses it with AI (using Claude's agent-sdk), and injects relevant context back into future sessions.",
+      "language": "TypeScript",
+      "stars": 63323,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "14,556 stars this week",
+      "created_at": "2025-08-31T20:50:03Z",
+      "pushed_at": "2026-04-20T00:36:30Z",
+      "topics": [
+        "ai",
+        "ai-agents",
+        "ai-memory",
+        "anthropic",
+        "artificial-intelligence",
+        "claude",
+        "claude-agent-sdk",
+        "claude-agents",
+        "claude-code",
+        "claude-code-plugin",
+        "claude-skills",
+        "long-term-memory",
+        "mem0",
+        "openmemory",
+        "supermemory",
+        "chromadb",
+        "sqlite",
+        "embeddings",
+        "memory-engine",
+        "rag"
+      ],
+      "homepage": "https://claude-mem.ai",
+      "readme_excerpt": "src=\"https://raw.githubusercontent.com/thedotmack/claude-mem/main/docs/public/cm-preview.gif\" alt=\"Claude-Mem Preview\" width=\"500\" media=\"(prefers-color-scheme: dark)\" srcset=\"https://api.star-history.com/image?repos=thedotmack/claude-mem&type=date&theme=dark&legend=top-left\" media=\"(prefers-color-scheme: light)\" srcset=\"https://api.star-history.com/image?repos=thedotmack/claude-mem&type=date&legend=top-left\" alt=\"Star History Chart\"…",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 3
+      }
+    },
+    {
+      "full_name": "EvoMap/evolver",
+      "owner": "EvoMap",
+      "name": "evolver",
+      "url": "https://github.com/EvoMap/evolver",
+      "description": "The GEP-Powered Self-Evolution Engine for AI Agents. Genome Evolution Protocol. | evomap.ai",
+      "language": "JavaScript",
+      "stars": 5518,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "3,434 stars this week",
+      "created_at": "2026-02-01T05:59:24Z",
+      "pushed_at": "2026-04-19T15:24:15Z",
+      "topics": [],
+      "homepage": "https://evomap.ai",
+      "readme_excerpt": "**[evomap.ai](https://evomap.ai)** | [Documentation](https://evomap.ai/wiki) | [Chinese / 中文文档](README.zh-CN.md) | [Japanese / 日本語ドキュメント](README.ja-JP.md) | [GitHub](https://github.com/EvoMap/evolver) | [Releases](https://github.com/EvoMap/evolver/releases)",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 4
+      }
+    },
+    {
+      "full_name": "lsdefine/GenericAgent",
+      "owner": "lsdefine",
+      "name": "GenericAgent",
+      "url": "https://github.com/lsdefine/GenericAgent",
+      "description": "Self-evolving agent: grows skill tree from 3.3K-line seed, achieving full system control with 6x less token consumption",
+      "language": "Python",
+      "stars": 4541,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "3,512 stars this week",
+      "created_at": "2026-01-16T15:45:24Z",
+      "pushed_at": "2026-04-19T15:21:37Z",
+      "topics": [
+        "ai-agent",
+        "automation",
+        "autonomous-agent",
+        "browser-automation",
+        "claude",
+        "computer-control",
+        "desktop-automation",
+        "gemini",
+        "lightweight",
+        "llm-agent",
+        "memory-system",
+        "python",
+        "self-evolving",
+        "skill-tree",
+        "task-automation"
+      ],
+      "homepage": "https://github.com/lsdefine/GenericAgent",
+      "readme_excerpt": "**GenericAgent** is a minimal, self-evolving autonomous agent framework. Its core is just **~3K lines of code**. Through **9 atomic tools + a ~100-line Agent Loop**, it grants any LLM system-level control over a local computer — covering browser, terminal, filesystem, keyboard/mouse input, screen vision, and mobile devices (ADB).",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 5
+      }
+    },
+    {
+      "full_name": "shiyu-coder/Kronos",
+      "owner": "shiyu-coder",
+      "name": "Kronos",
+      "url": "https://github.com/shiyu-coder/Kronos",
+      "description": "Kronos: A Foundation Model for the Language of Financial Markets",
+      "language": "Python",
+      "stars": 19600,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "4,455 stars this week",
+      "created_at": "2025-07-01T02:54:32Z",
+      "pushed_at": "2026-04-13T12:38:49Z",
+      "topics": [],
+      "homepage": null,
+      "readme_excerpt": "> Kronos is the **first open-source foundation model** for financial candlesticks (K-lines), > trained on data from over **45 global exchanges**.",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 6
+      }
+    },
+    {
+      "full_name": "multica-ai/multica",
+      "owner": "multica-ai",
+      "name": "multica",
+      "url": "https://github.com/multica-ai/multica",
+      "description": "The open-source managed agents platform. Turn coding agents into real teammates — assign tasks, track progress, compound skills.",
+      "language": "TypeScript",
+      "stars": 16761,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "7,831 stars this week",
+      "created_at": "2026-01-13T17:59:46Z",
+      "pushed_at": "2026-04-19T18:03:05Z",
+      "topics": [],
+      "homepage": "https://multica.ai",
+      "readme_excerpt": "**Your next 10 hires won't be human.**",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 7
+      }
+    },
+    {
+      "full_name": "virattt/ai-hedge-fund",
+      "owner": "virattt",
+      "name": "ai-hedge-fund",
+      "url": "https://github.com/virattt/ai-hedge-fund",
+      "description": "An AI Hedge Fund Team",
+      "language": "Python",
+      "stars": 56346,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "4,458 stars this week",
+      "created_at": "2024-11-29T16:30:01Z",
+      "pushed_at": "2026-04-17T21:29:43Z",
+      "topics": [],
+      "homepage": null,
+      "readme_excerpt": "This is a proof of concept for an AI-powered hedge fund.  The goal of this project is to explore the use of AI to make trading decisions.  This project is for **educational** purposes only and is not intended for real trading or investment.",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 8
+      }
+    },
+    {
+      "full_name": "microsoft/markitdown",
+      "owner": "microsoft",
+      "name": "markitdown",
+      "url": "https://github.com/microsoft/markitdown",
+      "description": "Python tool for converting files and office documents to Markdown.",
+      "language": "Python",
+      "stars": 112613,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "9,018 stars this week",
+      "created_at": "2024-11-13T19:56:40Z",
+      "pushed_at": "2026-04-15T22:26:44Z",
+      "topics": [
+        "langchain",
+        "openai",
+        "autogen-extension",
+        "autogen",
+        "markdown",
+        "microsoft-office",
+        "pdf"
+      ],
+      "homepage": null,
+      "readme_excerpt": "> [!TIP] > MarkItDown now offers an MCP (Model Context Protocol) server for integration with LLM applications like Claude Desktop. See [markitdown-mcp](https://github.com/microsoft/markitdown/tree/main/packages/markitdown-mcp) for more information.",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 9
+      }
+    },
+    {
+      "full_name": "Lordog/dive-into-llms",
+      "owner": "Lordog",
+      "name": "dive-into-llms",
+      "url": "https://github.com/Lordog/dive-into-llms",
+      "description": "《动手学大模型Dive into LLMs》系列编程实践教程",
+      "language": "Jupyter Notebook",
+      "stars": 32459,
+      "stars_gained_daily": null,
+      "stars_gained_weekly": "5,497 stars this week",
+      "created_at": "2024-04-08T13:11:40Z",
+      "pushed_at": "2025-10-10T06:25:48Z",
+      "topics": [],
+      "homepage": null,
+      "readme_excerpt": "2025/06/06  感谢各位朋友们的关注和积极反馈！我们从以下两个方面对本教程进行了更新：",
+      "lists": [
+        "weekly_top10"
+      ],
+      "rank": {
+        "weekly_top10": 10
+      }
+    }
+  ]
+}

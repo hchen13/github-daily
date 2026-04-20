@@ -1,24 +1,24 @@
 {
   "full_name": "multica-ai/multica",
-  "reviewed_at": "2026-04-19T04:44:27Z",
-  "model": "claude-opus-4-7",
-  "duration_s": 88.0,
-  "intro": "一个把编码 agent 当团队成员调度的 Kanban 式平台：在看板上给 Claude Code / Codex / OpenClaw / Hermes / Gemini / Cursor Agent 等 CLI 分派 issue，本地 daemon 拉代码、跑 CLI、回传进度，给多人团队用。",
+  "reviewed_at": "2026-04-20T03:11:36Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 91.5,
+  "total_lines": 151447,
+  "intro": "Multica 是一个 AI agent 项目管理平台，将 Claude Code、Codex、Gemini、OpenClaw 等 9 种编码 agent CLI 当作工程师成员接入 Linear 风格的 issue 系统，用户运行本地 daemon 后 agent 可自动认领并执行任务。",
   "tech_stack": [
-    "Go 1.26（Chi、sqlc、gorilla/websocket、pgx/v5、Cobra）",
-    "Next.js 16 App Router + shadcn/Base UI",
-    "Electron 桌面端（electron-vite）",
-    "PostgreSQL 17 + pgvector",
-    "pnpm workspaces + Turborepo，packages 切 core/ui/views",
-    "AWS S3 / SecretsManager、Resend 邮件、JWT"
+    "Go 1.26（chi router / pgx v5 / sqlc / gorilla/websocket）",
+    "PostgreSQL（48 条 migration，sqlc 生成查询层）",
+    "Next.js 15（web 前端）+ Electron（桌面端，electron-vite）",
+    "TanStack Query + Zustand（前端状态层，packages/core 共享）",
+    "Turborepo + pnpm workspaces（monorepo）",
+    "AWS S3 / 本地文件系统（双模式存储）"
   ],
-  "scale": "monorepo。server 端约 193 个 Go 文件（handler 层 15k 行、daemon+service 层 5k 行），前端 apps/packages 合计约 464 个 TS/TSX，48 条 SQL migration。包边界在 CLAUDE.md 里写得很死（core 禁 react-dom、ui 禁业务逻辑、views 禁 next/\\*），属于在内部跑过一段时间、一次性 squash 开源的成熟代码。维护状态看不准——整个 git 历史只有一条 2026-04-18 的 initial commit，没有增量可评。",
-  "scale_tag": "monorepo 多栈中型",
+  "scale": "标准 monorepo 结构：3 个 app（web / desktop / docs）、5 个共享包（core / ui / views 等）、Go 服务端含独立 CLI 二进制。48 条带 up/down 的 migration 文件，docs/plans/ 下有 2026-04-07 到 2026-04-16 的多份架构设计文档。维护状态活跃，schema 演化节奏很快，仍处于快速迭代期。",
+  "scale_tag": "",
   "tech_tags": [
-    "Go + Next.js 16",
-    "多 CLI agent 编排",
-    "修改版 Apache 2.0"
+    "多 Agent CLI 统一调度",
+    "Go + Next.js 全栈自托管"
   ],
-  "verdict": "工程完整度看得出是内部产品整包开源，定位不新，但\"一个看板统管八种 agent CLI\"这个点对多 agent 用户确实有用。",
-  "evaluation": "定性先说：不是玩具，是一家叫 multica-ai 的公司把内部 SaaS 砸出来做开源引流，cloud-first + 自托管选项的开源核心模式。证据很硬——48 条有序的 schema migration、切得很干净的 monorepo、handler 层光一个 workspace.go 就 600 行、CLAUDE.md 和 HANDOFF_ARCHITECTURE_AUDIT.md 里写死了包依赖方向——这些东西都不是临时做出来的。值得看的是 daemon 那块：本地进程自动探测八种 agent CLI（claude / codex / openclaw / opencode / hermes / gemini / pi / cursor-agent），通过 workspace 级 repo cache 发 shallow clone，把 issue ID 注进 prompt 让 CLI 自己 `multica issue get` 回读任务——这是一套可复用的 agent 编排壳，对同时在用多个 CLI 的人是真有价值的抽象。不适合的人：想要本地轻量化工具的（要 Docker + Postgres + pgvector + Next.js + Go 后端，自托管门槛不低）、介意\"hosted service 要另买商业 license\"修改条款的。新意评估：Linear-ish 看板 + AI assignee 这个概念 Paperclip、Sweep、Factory、GitButler 都在做，Multica 自己也把 Paperclip 拉进 README 做了对比——核心差异点就是团队协作 + vendor-neutral 的 CLI 池。单 commit squash 开源让外人无法判断代码稳定性和团队节奏，要真上生产建议先锁版本跑几周再说。"
+  "verdict": "有真实工程深度的 agent 编排平台，agent 抽象层设计干净，但仍是早期产品，WS 层有已知架构缺陷，不建议直接上生产。",
+  "evaluation": "这不是 wrapper，是严肃的工程项目——核心价值点在 `server/pkg/agent/` 这一层。9 种 agent CLI（claude / codex / gemini / cursor / opencode / openclaw / hermes / pi / copilot）各自实现统一的 `Backend` 接口，协议各不相同：claude 走 `--output-format stream-json`，codex 走 JSON-RPC 2.0 over stdio，两套协议都有完整的 session resume 逻辑、token usage 回收、工具调用自动审批。codex 适配器还同时支持 \"legacy codex/event\" 和 \"raw v2\" 两套通知协议，dedup 用 `completedTurnIDs` map 防止重复 fire——这不是随手写的代码。\n\n真正有意思的地方：daemon 在本地轮询服务端（3s 间隔），自动侦测 PATH 里已安装的 agent CLI，注册 runtime，然后按 issue 分发任务，整个流程不要求用户手动指定用哪个 CLI。适合的场景是：工程团队已经在用多种 agent CLI，想要一个统一调度入口而不想改 workflow。\n\n已知的硬伤也记录在案了——`HANDOFF_ARCHITECTURE_AUDIT.md` 里明确标注 P0 bug：`query-client.ts` 里 `staleTime: Infinity` 加 `refetchOnWindowFocus: false`，全靠 WebSocket 推送维持 cache 新鲜度，但 WS client 没有任何心跳检测，NAT 超时或笔记本睡眠会造成\"半开\"连接，issue 列表静默陈旧，重新登录才恢复。这个文档本身是中文写的，用 pfctl 给出了复现步骤，说明团队清楚问题在哪、只是还没修。\n\n48 条 migration 对一个计划文档最早在 4 月 7 日的项目来说节奏很激进，schema 仍在剧烈变动。适合跟进、不适合今天就接生产流量。"
 }

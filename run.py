@@ -3,9 +3,10 @@
 Stages, in order:
     trending  → fetch GitHub Trending Daily Top 1 + Weekly Top 10 → JSON
     repos     → fetch tracked repos' issues/PRs/commits/releases → SQLite
-    narrator  → 1a, per-repo 24h integrated narrative (sonnet)
+    wiki      → pull local clones, rebuild per-repo wiki if HEAD sha changed
+    narrator  → 1a, per-repo 24h integrated narrative (reads wiki)
     reviewer  → 1b, opus reviews each trending repo's code (cache-aware)
-    editor    → 2, assemble the daily publication Markdown (sonnet)
+    editor    → 2, assemble the daily publication Markdown
     render    → MD → HTML + PDF + JPEG via Playwright
 
 Usage:
@@ -27,12 +28,13 @@ from typing import Optional
 
 from analysts.editor import main as editor_main
 from analysts.narrator import main as narrator_main
+from analysts.repo_wiki import main as wiki_main
 from analysts.trending_reviewer import main as reviewer_main
 from collectors.repos import main as repos_main
 from collectors.trending import main as trending_main
 from renderers.publication import main as render_main
 
-STEPS = ["trending", "repos", "narrator", "reviewer", "editor", "render"]
+STEPS = ["trending", "repos", "wiki", "narrator", "reviewer", "editor", "render"]
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -61,6 +63,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     invocations: dict[str, tuple] = {
         "trending": (trending_main, ["--date", date_arg] + verbose_arg),
         "repos":    (repos_main,    verbose_arg),
+        "wiki":     (wiki_main,     verbose_arg),
         "narrator": (narrator_main, workers_arg + verbose_arg),
         "reviewer": (reviewer_main, ["--date", date_arg] + workers_arg + verbose_arg),
         "editor":   (editor_main,   ["--date", date_arg] + verbose_arg),

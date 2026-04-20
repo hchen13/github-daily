@@ -1,0 +1,24 @@
+{
+  "full_name": "Fincept-Corporation/FinceptTerminal",
+  "reviewed_at": "2026-04-20T03:09:46Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 101.2,
+  "total_lines": 731360,
+  "intro": "Fincept Terminal 是一个 C++20/Qt6 原生桌面金融终端，定位类 Bloomberg 开源替代，面向零售/机构量化交易者，支持 Windows / macOS / Linux 三平台，内置股票、衍生品、加密货币交易、宏观经济数据、AI 对话与 MCP 工具链。",
+  "tech_stack": [
+    "C++20 + Qt 6.8.3（Widgets / Charts / Network / WebSockets / SQL / Multimedia）",
+    "CMake 3.27+，Unity Build + ccache/sccache",
+    "SQLite（via Qt6 SQL）",
+    "Python 3.11+（subprocess 桥接，1,550+ 数据采集脚本）",
+    "MCP（JSON-RPC 2.0 over stdio，外部服务器进程）",
+    "多 LLM 接入（OpenAI / Anthropic / Gemini / Groq / DeepSeek / OpenRouter / Ollama）"
+  ],
+  "scale": "结构成熟的单体 monorepo，`fincept-qt/src/` 下 13 个顶级模块（ai_chat / datahub / mcp / trading / screens / services 等），1,068 个 C++/H 文件，合计 24 万行以上。版本号 4.0.2，CMakeLists.txt 里有大量真实踩坑注释（macOS Sonoma AGL 问题、MSVC unity build 批次大小、PDB 写争用），看得出这是持续迭代的活跃项目，而非停滞原型。测试覆盖率偏低——tests/ 下目前只有一个 `test_datahub.cpp`。",
+  "scale_tag": "",
+  "tech_tags": [
+    "Qt6 原生桌面",
+    "MCP + 多 LLM 接入"
+  ],
+  "verdict": "严肃工程底子、功能覆盖极广的开源金融终端，最大亮点是 DataHub 内进程 pub/sub 架构与 MCP 工具链整合，但自构建门槛高、测试几乎为零，当前最适合印度市场的量化开发者跟进。",
+  "evaluation": "这是一个真正在用心做的项目，不是营销 wrapper。CMakeLists.txt 里的工程细节说明了问题——MSVC unity batch size 从 32 调到 14、`/Z7` 替换 `/ZI` 消除 PDB 写争用、macOS Sonoma 的 AGL 框架消失问题用 portable CMake 脚本打补丁——这些都是实际踩过坑之后才会写进去的东西。\n\n核心设计里最有意思的是 DataHub。文档里直接承认了痛点：55+ 屏、27 个服务、三套不兼容的响应风格（callback / Qt signal / raw WebSocket），导致同一个 AAPL 报价被多个 widget 各自 fetch。DataHub 是一个纯内进程 pub/sub 层，主题格式 `domain:subdomain:id`，支持通配符订阅、TTL 策略、coalesce 窗口——设计文档注明 Phase 0–10 已全部上线，2026-04-18 生产可用。这套东西放在开源金融终端里比较少见。\n\nMCP 集成也是实打实的——`McpClient` 直接 spawn 外部 MCP server 进程，JSON-RPC 2.0 over stdio，LLM 的工具调用走标准 MCP 协议，不是自己造的私有接口。\n\n硬伤有两个：第一，1,550 个 Python 脚本做数据源桥接，相当于把半个\"数据集成层\"外包给了无类型的脚本堆，运维负担极重；第二，测试几乎为零（tests/ 里只有一个 DataHub 单测）。自构建需要 Qt 6.8.3 exact + MSVC 19.38+ / GCC 12.3+ / Clang 15.0+，加上 Python 3.11+ 的 venv，门槛不低。主要 broker 集成是印度市场（Zerodha、AngelOne、Upstox 等），非印度用户能用的只有 IBKR / Alpaca / Saxo。对想搭一个本地可控量化工作台的印度开发者来说，值得认真看。"
+}

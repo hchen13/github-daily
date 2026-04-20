@@ -1,0 +1,21 @@
+{
+  "full_name": "forrestchang/andrej-karpathy-skills",
+  "reviewed_at": "2026-04-20T03:08:41Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 41.8,
+  "total_lines": 1130,
+  "intro": "把 Karpathy 一条推文里的 LLM 编码行为准则（不假设、不过度抽象、外科式改动、目标可验证）打包成 Claude Code skill + Cursor rules，方便直接复用进自己项目。",
+  "tech_stack": [
+    "Markdown（全部内容载体）",
+    "Claude Code `.claude-plugin/` 插件格式 + `skills/` 目录结构",
+    "Cursor `.cursor/rules/*.mdc` 规则格式"
+  ],
+  "scale": "整个仓库只有 6 个有效文件：1 个 SKILL.md、1 个 CLAUDE.md、1 个 CURSOR.md、1 个 EXAMPLES.md、2 个 JSON 元数据。没有任何可执行代码，无构建系统，无依赖。commit 历史浅克隆看不清频率，但从结构判断是一次性交付——内容稳定后基本不会再动。",
+  "scale_tag": "",
+  "tech_tags": [
+    "Claude Code Skill 插件格式",
+    "Cursor Rules `.mdc`"
+  ],
+  "verdict": "Karpathy 推文内容打包进 Claude Code skill 和 Cursor rules，直接 `git clone` 后把 CLAUDE.md 内容合并进自己项目就能用，适合懒得手写规则的人抄。",
+  "evaluation": "个人玩具级项目，但内容本身有实际价值——这点要分开说。\n\n工程量几乎为零：整个 repo 是 6 个 Markdown 文件，两份 JSON 元数据，没有代码。作者做的事情是把 Karpathy 一条推文（`@karpathy/status/2015883857489522876`）的内容提炼成四条准则，然后分别写成 Claude Code 的 `CLAUDE.md`、`skills/karpathy-guidelines/SKILL.md` 和 Cursor 的 `.cursor/rules/karpathy-guidelines.mdc`——三套格式，内容基本相同。\n\n真正值得一看的是 `EXAMPLES.md`：150 多行 before/after 代码对比，覆盖\"隐式假设\"、\"过度抽象\"、\"顺手重构\"、\"无标准收敛\"四个坑，每个反例都对应具体的 diff 和解释。这比准则本身有用，也比大多数类似 prompt 教程更落地。\n\n适合谁：想给自己 Claude Code 或 Cursor 工作流快速加一层行为约束的开发者，直接把 CLAUDE.md 内容复制进项目根目录就行，不需要 `git submodule` 或任何安装步骤。\n\n不适合谁：期待看到真正的工程实现、测试框架或自动化验证的人——这里什么都没有。\n\n和已有同类项目比：`awesome-claude-prompts` 这类 repo 只是 prompt 集合；这个至少对准了 Claude Code skill 格式，且内容有明确出处。新意不大，但打包方式比散装 prompt 更直接可用。"
+}

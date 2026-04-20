@@ -13,3 +13,8 @@ venv/
 
 # Daemon logs
 data/logs/
+
+# Local scratch (scraped samples, browser profile, one-off tools)
+data/samples/
+data/chrome-profile/
+scripts/

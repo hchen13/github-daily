@@ -1,24 +1,23 @@
 {
   "full_name": "lsdefine/GenericAgent",
-  "reviewed_at": "2026-04-19T04:48:29Z",
-  "model": "claude-opus-4-7",
-  "duration_s": 238.8,
-  "intro": "一个 Python 写的自主 Agent 框架，9 个原子工具让 LLM 直接驱动本地浏览器、终端、键鼠和 ADB 手机，跑过的任务沉淀为可复用 Skill。",
+  "reviewed_at": "2026-04-20T03:11:31Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 116.0,
+  "total_lines": 15414,
+  "intro": "面向中文用户的本地个人 AI Agent 框架，接入任意 Claude / OpenAI 兼容 API，通过代码执行、CDP 浏览器控制、文件读写和多层 SOP 记忆系统完成 PC 自动化任务，并支持通过微信、钉钉、飞书、Telegram 等 IM 前端收发指令。",
   "tech_stack": [
-    "Python（扁平脚本，无 packaging）",
-    "TMWebDriver + Chrome CDP 浏览器注入",
-    "Streamlit / PyQt / pywebview 桌面前端",
-    "Claude / OpenAI 兼容 / Kimi / MiniMax / GLM 多 LLM 后端",
-    "Telegram / QQ / 企业微信 / 钉钉 / 飞书 / 个人微信 Bot",
-    "ADB 安卓控制、分层记忆以 Markdown SOP 落盘"
+    "Python（全栈，单包平铺，无构建系统）",
+    "Claude API / OpenAI API（原生 function calling + 文本协议双模）",
+    "Chrome DevTools Protocol（自研 Extension + WebSocket / HTTP 长轮询桥，非 Playwright/Selenium）",
+    "BeautifulSoup4 + bottle + simple_websocket_server（DOM 简化与 HTTP 桥）",
+    "WeChat / DingTalk / Feishu / Telegram / Streamlit / Qt（10+ IM 与 GUI 前端）"
   ],
-  "scale": "Python 为主，扁平目录无包装：llmcore 919 行、simphtml 870 行、ga 558 行、agentmain 260、agent_loop 121，叠加 frontends（qtapp 一个就 1746 行）、memory、reflect、tests，整体约 8K 行。README 自述\"核心 ~3K 行\"大致属实。公开 git 只有一条 squash commit，时间戳是当天，但新闻线可追到 2026-01，真实迭代节奏在公开仓库里看不见。",
-  "scale_tag": "中型 ~8k 行",
+  "scale": "核心六个 Python 文件合计约 3300 行（`llmcore.py` 941 行、`simphtml.py` 870 行、`ga.py` 557 行为主体），单包平铺，无 pyproject.toml、无 requirements.txt、零测试套件。`memory/` 目录预置 15 个 SOP 文件，`frontends/` 覆盖 10+ 接入点，整体是个人工具量级的中型项目，注释以中文为主，文档较完整。",
+  "scale_tag": "",
   "tech_tags": [
-    "Python",
-    "CDP 真实浏览器注入",
-    "多 IM Bot 前端"
+    "CDP 自研浏览器桥",
+    "L1-L4 多层记忆"
   ],
-  "verdict": "野路子国产 Agent 框架，适合折腾本地自动化的玩家，不适合当严肃工程参考抄。",
-  "evaluation": "介于个人作品和工程项目之间，有几处真正值得看。**技术点**：TMWebDriver 通过 CDP 注入用户自己日常用的 Chrome，而不是另起一个干净会话——微信、支付宝、淘宝的登录态直接可用，这是它能在国内场景干活的关键底气；分层记忆（L0 元规则 / L1 索引 / L2 事实 / L3 SOP / L4 归档）落到 memory/ 下就是一堆 .md 文件 + 少量 Python 工具，工程量小但够用；MixinSession 多后端故障转移、IM 前端覆盖到个人微信/QQ/钉钉/飞书，国内折腾自动化的场景齐了。**代价**：代码密度极高，一行塞三四个语句加分号，llmcore 一个文件 919 行，读起来像作者一个人的密语；公开 git 只有一条 squash commit，README 吹的\"自举实证——每条 commit 都是 agent 自己做的\"无从验证；个人微信逆向、ADB 驱动支付宝这类玩法，法律风险自己掂量；与 OpenClaw 对比表里那句\"OpenClaw 53 万行\"基本是营销口径。**适合**：想在自己机器上把 agent 跑起来、能忍受作者密集风格 Python 的国内玩家。**不适合**：找可读框架抄模块、做团队部署、或者代码要过 review 的人。新意有限，\"技能结晶化\"思路和 Voyager 一脉相承，真正的差异化在真实浏览器接管和中文 IM 生态覆盖。"
+  "verdict": "高权限本地 Agent 框架，CDP 浏览器控制和分层记忆 SOP 注入是真正有料的设计，无测试无沙箱，上手需要一定耐心，非纯技术中文用户最对口。",
+  "evaluation": "这是个工程量扎实的个人工具项目，不是研究原型，代码本身承担了实际 PC 自动化工作量。\n\n真正值得看的设计有两处。\n\n第一是 TMWebDriver。没用 Playwright 或 Selenium，而是自写了 Chrome Extension + WebSocket / HTTP 长轮询桥，可控制用户*已经打开的*浏览器页面——包括微信网页版、支付宝这类对自动化工具有防护的场景。配套的 `simphtml.py` 把实时 DOM 动态简化为 LLM 可读结构，过滤掉浮动层、侧边栏等噪声，而不是把全量 HTML 塞给模型。\n\n第二是 L1-L4 分层记忆 + SOP 注入。每轮工具结果返回时，`_get_anchor_prompt()` 把最近 20 条历史和短期工作记忆（`key_info`）注入 prompt；任务完成后 `start_long_term_update` 触发模型把验证过的事实写入 L2/L3 文件。`memory/` 目录预置 `tmwebdriver_sop.md`、`plan_sop.md`、`autonomous_operation_sop.md` 等 15 份操作手册，按需读入上下文——对长任务上下文丢失问题的解法是认真的。\n\n适合谁：需要在本机跑一个真正能操作 PC 的私人助理、同时要接微信 / 钉钉 / 飞书消息入口的中文开发者。不适合：需要多 agent 编排的生产场景（单 agent 单线程，无并发），对高权限工具敏感的环境（`code_run` 无沙箱，可执行任意 Python / shell），以及西方用户（前端、注释、文档全中文）。\n\n门槛不低：需手动装 Chrome Extension、自写 `mykey.py` 配凭证、散装 pip 安装依赖（无 requirements.txt）。\n\n和 OpenInterpreter 比，多了 CDP 浏览器控制、分层记忆、多 IM 前端；和 AutoGen 比，设计简单得多，但更像一个真正在被人用的本地工具，而不是框架实验。"
 }

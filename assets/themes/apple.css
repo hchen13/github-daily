@@ -530,11 +530,36 @@ body {
   background: rgba(0, 113, 227, 0.08);
   color: var(--apple-blue);
 }
-.publication .chip.scale {
+
+/* Size chip — programmatic total_lines bucket, color encodes weight class. */
+.publication .chip.size {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.publication .chip.size-sm {
   background: rgba(48, 184, 82, 0.10);
   color: #1f7a39;
+}
+.publication .chip.size-md {
+  background: rgba(0, 113, 227, 0.08);
+  color: #2a5eaa;
+}
+.publication .chip.size-lg {
+  background: rgba(255, 149, 0, 0.14);
+  color: #c86b00;
+}
+.publication .chip.size-xl {
+  background: rgba(200, 54, 62, 0.10);
+  color: #b22935;
+}
+
+/* Language chip — fixed GitHub metadata, neutral dark accent. */
+.publication .chip.language {
+  background: #1d1d1f;
+  color: #ffffff;
   font-weight: 600;
 }
+
 .publication .chip.tech {
   background: transparent;
   border: 1px solid #dfdfe6;

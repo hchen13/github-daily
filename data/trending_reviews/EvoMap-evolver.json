@@ -1,24 +1,23 @@
 {
   "full_name": "EvoMap/evolver",
-  "reviewed_at": "2026-04-19T04:48:02Z",
-  "model": "claude-opus-4-7",
-  "duration_s": 176.2,
-  "intro": "一个宣称\"AI agent 自我进化\"的 Node.js CLI daemon，循环采集运行日志触发 LLM 改代码，并通过本地 Proxy 向中心化的 evomap.ai Hub 同步\"基因/胶囊/事件\"资产。目标用户是 Cursor / Claude Code / OpenClaw 用户。",
+  "reviewed_at": "2026-04-20T03:10:22Z",
+  "model": "claude-sonnet-4-6",
+  "duration_s": 98.6,
+  "total_lines": 26797,
+  "intro": "一个挂载在 AI 编程 agent（Claude Code / Cursor / Codex）会话生命周期上的\"自进化\"引擎，通过 session hook 收集运行信号，按 GEP（Genome Evolution Protocol）选基因、施变异、校验、git commit，并与 evomap.ai 上的技能市场互通。",
   "tech_stack": [
-    "Node.js ≥ 18（纯 JS，CommonJS）",
-    "零运行时依赖，仅 dotenv；devDependency 里有 `javascript-obfuscator ^5.4.1`",
-    "`gh`/`git` CLI 驱动（回滚、solidify、发布 release）",
-    "自研 JSONL 本地 mailbox + 本地 HTTP Proxy（127.0.0.1:19820）作为 Hub 通道",
-    "`node:test` 跑 50 个测试文件",
-    "Hook 适配层：Cursor `hooks.json` / Claude Code `~/.claude/` / Codex / OpenClaw stdout 协议"
+    "Node.js（纯 JS，运行时零依赖，仅 dotenv）",
+    "Claude Code / Cursor / Codex hook 适配层",
+    "GEP 协议（本地 JSONL 资产存储：genes/capsules/events）",
+    "evomap.ai Hub（ATP 技能市场 + mailbox 代理 + 加密 blob 上传）",
+    "javascript-obfuscator（devDependency，核心文件已混淆）"
   ],
-  "scale": "中型单体 Node 项目，src/ 约 4.1 MB、73 个 `.js` 文件，外加 scripts/ 15 个、test/ 50 个。核心一个 732 KB 的 `src/evolve.js` 单文件 + `src/gep/` 51 个模块（含 461 KB 的 `skillDistiller.js`、393 KB 的 `solidify.js`、333 KB 的 `a2aProtocol.js`、234 KB 的 `memoryGraph.js` 等）。维护状态完全看不准——整个 git 历史只有一条 squash commit `c908db7 Release v1.68.0-beta.1`（2026-04-18），没有任何迭代痕迹可追溯。",
-  "scale_tag": "中型单体",
+  "scale": "代码结构成熟——`src/gep/` 下约 50 个模块，`test/` 下约 50 个对应测试文件，适配层覆盖三个主流 AI agent 平台。版本 v1.69.3，看起来历经多个迭代。关键问题：`evolve.js`（760KB）、`solidify.js`（408KB）、`a2aProtocol.js`（266KB）等核心文件全部经过 javascript-obfuscator 混淆，`shield.js` 带反调试检测，`.integrity` 二进制文件做篡改校验——这是一个开源仓库里的防逆向套件。",
+  "scale_tag": "",
   "tech_tags": [
-    "Node.js CLI daemon",
-    "核心代码混淆",
-    "GPL-3.0 声明"
+    "GEP 进化协议",
+    "纯 JS 零依赖"
   ],
-  "verdict": "功能野心很大的\"agent 自进化\"框架，但核心模块已混淆、只有一条 squash commit，当前 GPL 声明下是否可审计存疑。",
-  "evaluation": "先说证据。`package.json` 标 `GPL-3.0-or-later`、`devDependencies` 里赫然放着 `javascript-obfuscator`，然后 `src/evolve.js`（732 KB 单行）、`src/gep/skillDistiller.js`、`solidify.js`、`memoryGraph.js`、`a2aProtocol.js`、`policyCheck.js`、`hubSearch/hubVerify/crypto/deviceId/envFingerprint` 等 22 个最大的核心文件，全是 `const _0x56dc45=_0x314b;...` 的经典 `javascript-obfuscator` 输出；另一面，入口 `index.js`、`adapters/claudeCode.js`、`gep/paths.js`、`ops/*.js`、50 个测试是清晰可读的。也就是说：壳子和插件层开源给你看，真正做\"进化决策\"\"身份指纹\"\"Hub 鉴权\"\"内容哈希\"的部分是黑盒。这和 GPL 要求分发\"preferred form for modification\"是直接矛盾的，README 自己也说\"要转向 source-available\"——那就坦白改 license，别两头占。有价值的点是：对 Cursor / Claude Code / Codex 三家的 hook 集成写得挺系统，`node:test` 覆盖面广（a2a 协议、mailbox、rollback、idle scheduling 都有），零运行时依赖架构对想读 agent loop 骨架的人有参考价值。适合想抄 hook 集成范式或 proxy-mailbox 思路的工程师扫一眼；不适合企业生产接入——GPL 外壳 + 混淆内核 + 单次 squash commit 意味着没有可审计的供应链，任何安全/合规团队都会直接 reject。新意评估：自进化 + 基因/胶囊/事件这套叙事在 agent 圈已经不新，实际创新度要看被混淆的 `skillDistiller` 和 `memoryGraph`——而这部分恰好不让你读。"
+  "verdict": "概念有意思、工程有细节，但核心逻辑全部混淆、GPL 许可与混淆发行直接矛盾，且让它\"进化\"你代码库时你根本看不见它在做什么。",
+  "evaluation": "概念层不是空话。GEP 的设计——把进化行为结构化成 Gene（策略库）+ EvolutionEvent（append-only JSONL 审计）+ Capsule（成功案例），配合 blast radius 估算和 git rollback——是有工程思考在里面的。session hook 适配 Claude Code / Cursor / Codex 三套平台，写得干净，安装流程也做了自动化。\n\n但有几个硬伤必须说清楚：\n\n**第一，GPL-3.0 + 混淆是矛盾的。** `evolve.js`、`solidify.js`、`selector.js`、`a2aProtocol.js` 这些核心文件加起来超过 1.5MB，全是 `javascript-obfuscator` 的输出。GPL v3 要求提供\"优选修改形式\"（preferred form for modification），混淆代码不满足这个条件。这不是法律灰区，是直接冲突。\n\n**第二，`shield.js` 是反调试模块。** 它主动检测 `--inspect`、`--debug-brk`、`v8debug` 等调试标志，一旦发现就触发保护。一个声称帮你进化代码库的工具，同时阻止你调试它。\n\n**第三，外部依赖不透明。** ATP 技能市场从 `evomap.ai` 购买 skill 需要 credits，`privacyClient.js` 会把加密 blob 上传到 Hub 的 `/a2a/privacy/blob/upload` 接口。即使客户端先加密，数据离境已成事实。\n\n谁可以用：想研究\"agent 自进化\"架构思路的人，看看 hook 适配层和 GEP 协议设计还是值得的。谁不该用：把它实际接进生产代码库——你看不见核心决策逻辑，它又有写权限。"
 }

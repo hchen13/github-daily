@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 from analysts import build_system_prompt
+from analysts.repo_wiki import load_wiki
 from config import RepoConfig, load_config
 from db.models import get_db, init_db
 
@@ -104,8 +105,26 @@ def _build_user_prompt(repo: RepoConfig, paths: dict[str, Path],
     lines = [
         f"Repo: {repo.display_name} ({repo.full_name})",
         f"Window: {_iso_utc(window_start)} → {_iso_utc(anchor)} (24h)",
+    ]
+
+    wiki = load_wiki(repo.full_name)
+    if wiki:
+        lines += [
+            "",
+            "## 项目背景 wiki（你唯一的代码理解来源——遇到陌生术语先在这里查）",
+            "",
+            wiki,
+        ]
+    else:
+        lines += [
+            "",
+            "（本 repo 暂无 wiki。你只能基于 issue/PR/commit 文本推断背景，"
+            '不确定的地方直说"看不准"。）',
+        ]
+
+    lines += [
         "",
-        "数据文件（用 Read 工具按需打开）：",
+        "## 今日 24h 原始数据（用 Read 工具按需打开）",
         f"- {paths['issues']}  ({counts['issues']} issues)",
         f"- {paths['prs']}     ({counts['prs']} PRs)",
         f"- {paths['commits']} ({counts['commits']} commits)",

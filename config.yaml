@@ -32,8 +32,9 @@ analysis:
   claude_bin: /Users/claire/.local/bin/claude
   models:
     narrator: claude-sonnet-4-6
-    trending_reviewer: claude-opus-4-7
-    editor: claude-sonnet-4-6
+    trending_reviewer: claude-sonnet-4-6
+    editor: claude-opus-4-7
+    repo_wiki: claude-sonnet-4-6
 
 storage:
   db_path: "./data/github-daily.db"
