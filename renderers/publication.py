@@ -55,13 +55,16 @@ def md_to_html_body(md_text: str) -> str:
     return md.render(md_text)
 
 
-def build_html(md_text: str, title: str, target_date: date) -> str:
+def build_html(md_text: str, title: str, target_date: date,
+               extra_css: str = "") -> str:
     body = md_to_html_body(md_text)
     cfg = load_config()
     body = inject_activity_panel(body, target_date, cfg.storage.db_path, cfg.enabled_repos)
     body = inject_daily_top1(body, target_date, Path(cfg.storage.trending_dir))
     body = inject_weekly_top10(body, target_date, Path(cfg.storage.trending_dir))
     css = (ASSETS_DIR / "apple.css").read_text(encoding="utf-8")
+    if extra_css:
+        css += "\n\n/* ── mobile overrides ── */\n" + extra_css
     js = (ASSETS_DIR / "chart-tooltip.js").read_text(encoding="utf-8")
     shell = (ASSETS_DIR / "shell.html").read_text(encoding="utf-8")
     return (
@@ -81,13 +84,15 @@ def render(target_date: date, want_pdf: bool, want_jpeg: bool) -> dict[str, Path
         raise FileNotFoundError(f"Publication markdown not found: {md_path}")
 
     md_text = md_path.read_text(encoding="utf-8")
-    html = build_html(md_text, title=f"GitHub Daily · {target_date.isoformat()}", target_date=target_date)
+    title = f"GitHub Daily · {target_date.isoformat()}"
 
     out_dir = RENDERS_DIR / target_date.isoformat()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     written: dict[str, Path] = {}
 
+    # Web HTML — no mobile overrides; used by the web UI.
+    html = build_html(md_text, title=title, target_date=target_date)
     html_path = out_dir / "publication.html"
     html_path.write_text(html, encoding="utf-8")
     written["html"] = html_path
@@ -96,43 +101,54 @@ def render(target_date: date, want_pdf: bool, want_jpeg: bool) -> dict[str, Path
     if not (want_pdf or want_jpeg):
         return written
 
+    # Mobile HTML — larger fonts (zoom 1.25) for PDF/JPEG exports.
+    mobile_css_path = ASSETS_DIR / "mobile.css"
+    mobile_css = mobile_css_path.read_text(encoding="utf-8") if mobile_css_path.exists() else ""
+    mobile_html = build_html(md_text, title=title, target_date=target_date, extra_css=mobile_css)
+    mobile_html_path = out_dir / "publication-mobile.html"
+    mobile_html_path.write_text(mobile_html, encoding="utf-8")
+
     # Lazy-import Playwright so the HTML-only path doesn't require it.
     from playwright.sync_api import sync_playwright
 
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        try:
-            page = browser.new_page(viewport={"width": 980, "height": 1400})
-            # file:// URL so relative resources (Google Fonts) resolve normally.
-            page.goto(html_path.as_uri(), wait_until="networkidle")
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            try:
+                if want_pdf:
+                    # PDF: 980px viewport (maps well to A4), mobile fonts.
+                    page = browser.new_page(viewport={"width": 980, "height": 1400})
+                    page.goto(mobile_html_path.as_uri(), wait_until="networkidle")
+                    pdf_path = out_dir / "publication.pdf"
+                    page.emulate_media(media="print")
+                    page.pdf(
+                        path=str(pdf_path),
+                        format="A4",
+                        print_background=True,
+                        margin={"top": "14mm", "bottom": "14mm", "left": "0", "right": "0"},
+                    )
+                    written["pdf"] = pdf_path
+                    logger.info("wrote %s", pdf_path)
+                    page.close()
 
-            if want_pdf:
-                pdf_path = out_dir / "publication.pdf"
-                page.emulate_media(media="print")
-                page.pdf(
-                    path=str(pdf_path),
-                    format="A4",
-                    print_background=True,
-                    margin={"top": "0", "bottom": "0", "left": "0", "right": "0"},
-                )
-                written["pdf"] = pdf_path
-                logger.info("wrote %s", pdf_path)
-                # Reset to screen media for the JPEG screenshot.
-                page.emulate_media(media="screen")
-                page.goto(html_path.as_uri(), wait_until="networkidle")
-
-            if want_jpeg:
-                jpeg_path = out_dir / "publication.jpeg"
-                page.screenshot(
-                    path=str(jpeg_path),
-                    full_page=True,
-                    type="jpeg",
-                    quality=92,
-                )
-                written["jpeg"] = jpeg_path
-                logger.info("wrote %s", jpeg_path)
-        finally:
-            browser.close()
+                if want_jpeg:
+                    # JPEG: 750px viewport (WeChat article standard), mobile fonts.
+                    page = browser.new_page(viewport={"width": 750, "height": 1400})
+                    page.goto(mobile_html_path.as_uri(), wait_until="networkidle")
+                    jpeg_path = out_dir / "publication.jpeg"
+                    page.screenshot(
+                        path=str(jpeg_path),
+                        full_page=True,
+                        type="jpeg",
+                        quality=92,
+                    )
+                    written["jpeg"] = jpeg_path
+                    logger.info("wrote %s", jpeg_path)
+                    page.close()
+            finally:
+                browser.close()
+    finally:
+        mobile_html_path.unlink(missing_ok=True)
 
     return written
 

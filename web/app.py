@@ -11,7 +11,9 @@ Run:
 """
 from __future__ import annotations
 
+import json
 import logging
+import os
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -28,6 +30,10 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ASSETS_DIR = PROJECT_ROOT / "assets"
 RENDERS_DIR = PROJECT_ROOT / "data" / "renders"
 PUBLICATIONS_DIR = PROJECT_ROOT / "data" / "publications"
+
+# URL prefix when served behind a reverse proxy (e.g. /github-daily).
+# Set via env var GITHUB_DAILY_ROOT or the --root-path CLI flag.
+ROOT = os.environ.get("GITHUB_DAILY_ROOT", "").rstrip("/")
 
 app = FastAPI(title="GitHub Daily", description="辛哥的开源风向")
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
@@ -67,8 +73,26 @@ def extract_article(html: str) -> str:
 
 def render_chrome(title: str, body: str, current_date: Optional[str] = None) -> str:
     """Wrap body in the web-UI chrome: shared apple CSS + sticky nav."""
-    css_href = "/assets/themes/apple.css"
+    css_href = f"{ROOT}/assets/themes/apple.css"
     nav_extra = f' · <code>{current_date}</code>' if current_date else ""
+    float_html = ""
+    if current_date:
+        float_html = (
+            f'  <div class="float-actions">\n'
+            f'    <a class="float-btn" href="{ROOT}/d/{current_date}/pdf" target="_blank" title="查看 PDF">'
+            f'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+            f'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
+            f'<polyline points="14 2 14 8 20 8"/>'
+            f'<line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>'
+            f'</svg></a>\n'
+            f'    <a class="float-btn" href="{ROOT}/d/{current_date}/jpeg" target="_blank" title="查看图片">'
+            f'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+            f'<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>'
+            f'<circle cx="8.5" cy="8.5" r="1.5"/>'
+            f'<polyline points="21 15 16 10 5 21"/>'
+            f'</svg></a>\n'
+            f'  </div>\n'
+        )
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -103,19 +127,34 @@ def render_chrome(title: str, body: str, current_date: Optional[str] = None) -> 
       background: #f5f5f7; padding: 2px 6px; border-radius: 4px;
       font-size: 12px;
     }}
+    .float-actions {{
+      position: fixed; bottom: 28px; right: 28px;
+      display: flex; flex-direction: column; gap: 10px; z-index: 100;
+    }}
+    .float-btn {{
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
+      border: 1px solid rgba(0,0,0,0.12);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      display: flex; align-items: center; justify-content: center;
+      color: #1d1d1f; text-decoration: none; transition: background 0.15s, color 0.15s;
+    }}
+    .float-btn:hover {{ background: #f0f4ff; color: #0066cc; }}
   </style>
 </head>
 <body>
   <nav class="web-nav">
     <div class="brand">GitHub Daily<small>辛哥的开源风向{nav_extra}</small></div>
     <div class="links">
-      <a href="/">今日</a>
-      <a href="/archive">历史</a>
-      <a href="/settings">设置</a>
+      <a href="{ROOT}/">今日</a>
+      <a href="{ROOT}/archive">历史</a>
+      <a href="{ROOT}/settings">设置</a>
     </div>
   </nav>
 {body}
-  <script src="/assets/themes/chart-tooltip.js"></script>
+{float_html}  <script src="{ROOT}/assets/themes/chart-tooltip.js"></script>
 </body>
 </html>
 """
@@ -140,38 +179,141 @@ def serve_day(day: str):
     return _serve_publication_html(day)
 
 
-@app.get("/d/{day}/pdf")
+@app.get("/d/{day}/pdf", response_class=HTMLResponse)
 def serve_pdf(day: str):
     _validate_date(day)
     path = RENDERS_DIR / day / "publication.pdf"
     if not path.exists():
         raise HTTPException(404, f"No PDF for {day}")
+    return HTMLResponse(f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF · {day}</title>
+<style>*{{margin:0;padding:0;box-sizing:border-box}}html,body{{height:100%;background:#525659}}</style>
+</head><body>
+<embed src="{ROOT}/d/{day}/pdf-file" type="application/pdf" width="100%" height="100%">
+</body></html>""")
+
+
+@app.get("/d/{day}/pdf-file")
+def serve_pdf_file(day: str):
+    _validate_date(day)
+    path = RENDERS_DIR / day / "publication.pdf"
+    if not path.exists():
+        raise HTTPException(404, f"No PDF for {day}")
     return FileResponse(path, media_type="application/pdf",
-                        filename=f"github-daily-{day}.pdf")
+                        headers={"Content-Disposition": f'inline; filename="github-daily-{day}.pdf"'})
 
 
-@app.get("/d/{day}/jpeg")
+@app.get("/d/{day}/jpeg", response_class=HTMLResponse)
 def serve_jpeg(day: str):
     _validate_date(day)
     path = RENDERS_DIR / day / "publication.jpeg"
     if not path.exists():
         raise HTTPException(404, f"No JPEG for {day}")
+    return HTMLResponse(f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片 · {day}</title>
+<style>*{{margin:0;padding:0;box-sizing:border-box}}body{{background:#1d1d1f}}</style>
+</head><body>
+<img src="{ROOT}/d/{day}/jpeg-file" style="display:block;width:100%;height:auto">
+</body></html>""")
+
+
+@app.get("/d/{day}/jpeg-file")
+def serve_jpeg_file(day: str):
+    _validate_date(day)
+    path = RENDERS_DIR / day / "publication.jpeg"
+    if not path.exists():
+        raise HTTPException(404, f"No JPEG for {day}")
     return FileResponse(path, media_type="image/jpeg",
-                        filename=f"github-daily-{day}.jpg")
+                        headers={"Content-Disposition": f'inline; filename="github-daily-{day}.jpg"'})
 
 
 @app.get("/archive", response_class=HTMLResponse)
 def archive():
     dates = list_publication_dates()
-    items = "\n".join(
-        f'<li><a href="/d/{d}">{d}</a></li>' for d in dates
-    ) or "<li>暂无</li>"
+    dates_json = json.dumps(dates)
     body = f"""
 <article class="publication">
   <h1>历史刊物</h1>
   <blockquote><p>共 {len(dates)} 期</p></blockquote>
-  <ul>{items}</ul>
+  <div id="cal-wrap">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calPrev()">&#8249;</button>
+      <span id="cal-title" class="cal-title"></span>
+      <button class="cal-nav" onclick="calNext()">&#8250;</button>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
 </article>
+<style>
+  #cal-wrap {{ max-width: 340px; margin: 0 auto; font-family: 'Inter', -apple-system, sans-serif; }}
+  .cal-header {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }}
+  .cal-nav {{ background: none; border: 1px solid #d2d2d7; border-radius: 6px; width: 32px; height: 32px; cursor: pointer; font-size: 18px; color: #1d1d1f; line-height: 1; }}
+  .cal-nav:hover {{ background: #f5f5f7; }}
+  .cal-title {{ font-size: 16px; font-weight: 600; color: #1d1d1f; }}
+  .cal-grid {{ display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }}
+  .cal-dow {{ text-align: center; font-size: 11px; font-weight: 500; color: rgba(0,0,0,0.38); padding: 4px 0 10px; }}
+  .cal-day {{ display: flex; flex-direction: column; align-items: center; padding: 6px 0; border-radius: 8px; min-height: 42px; justify-content: flex-start; padding-top: 7px; }}
+  .cal-day.has-pub {{ cursor: pointer; }}
+  .cal-day.has-pub:hover {{ background: #f0f4ff; }}
+  .cal-day .dn {{ font-size: 13px; color: #1d1d1f; line-height: 1; }}
+  .cal-day.blank .dn {{ color: transparent; }}
+  .cal-day.today .dn {{ background: #0066cc; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }}
+  .cal-day .dot {{ width: 5px; height: 5px; border-radius: 50%; background: #0066cc; margin-top: 4px; }}
+</style>
+<script>
+(function() {{
+  const DATES = new Set({dates_json});
+  const MZ = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const DZ = ['日','一','二','三','四','五','六'];
+  const td = new Date();
+  const todayStr = td.getFullYear()+'-'+p2(td.getMonth()+1)+'-'+p2(td.getDate());
+  const sorted = Array.from(DATES).sort().reverse();
+  let yr, mo;
+  if (sorted.length) {{
+    const latest = sorted[0].split('-').map(Number);
+    yr = latest[0]; mo = latest[1] - 1;
+  }} else {{
+    yr = td.getFullYear(); mo = td.getMonth();
+  }}
+  function p2(n) {{ return String(n).padStart(2,'0'); }}
+  function render() {{
+    document.getElementById('cal-title').textContent = yr+'年'+MZ[mo];
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    DZ.forEach(d => {{
+      const el = document.createElement('div');
+      el.className = 'cal-dow'; el.textContent = d; grid.appendChild(el);
+    }});
+    const firstDow = new Date(yr, mo, 1).getDay();
+    const lastD = new Date(yr, mo+1, 0).getDate();
+    for (let i = 0; i < firstDow; i++) {{
+      const el = document.createElement('div');
+      el.className = 'cal-day blank';
+      el.innerHTML = '<span class="dn">·</span>';
+      grid.appendChild(el);
+    }}
+    for (let d = 1; d <= lastD; d++) {{
+      const ds = yr+'-'+p2(mo+1)+'-'+p2(d);
+      const el = document.createElement('div');
+      el.className = 'cal-day' + (ds === todayStr ? ' today' : '');
+      el.innerHTML = '<span class="dn">'+d+'</span>';
+      if (DATES.has(ds)) {{
+        el.classList.add('has-pub');
+        el.innerHTML += '<span class="dot"></span>';
+        el.addEventListener('click', function() {{ window.location.href='{ROOT}/d/'+ds; }});
+      }}
+      grid.appendChild(el);
+    }}
+  }}
+  window.calPrev = function() {{ mo--; if(mo<0){{mo=11;yr--;}} render(); }};
+  window.calNext = function() {{ mo++; if(mo>11){{mo=0;yr++;}} render(); }};
+  render();
+}})();
+</script>
 """
     return HTMLResponse(render_chrome("历史 · GitHub Daily", body))
 

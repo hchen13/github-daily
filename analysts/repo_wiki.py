@@ -118,9 +118,7 @@ def run_wiki_builder(repo: RepoConfig, clone_path: Path,
     system_prompt = build_system_prompt("repo_wiki.md")
     user_prompt = (
         f"目标项目：{repo.display_name}（{repo.full_name}）\n"
-        f"本地克隆绝对路径：{clone_path}\n\n"
-        "开始读。按五个章节输出 markdown："
-        "## 概览 / ## 架构 / ## 概念词典 / ## 读者画像 / ## 跟踪焦点。"
+        f"本地克隆绝对路径：{clone_path}\n"
     )
     cmd = [
         claude_bin,

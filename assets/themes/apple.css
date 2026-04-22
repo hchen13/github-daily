@@ -44,7 +44,7 @@ body {
 }
 
 .publication {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 40px 96px;
   counter-reset: section;
@@ -693,7 +693,7 @@ body {
     font-size: 22px;
     margin: 36px 0 14px;
     padding-top: 22px;
-    page-break-after: avoid;
+    break-inside: avoid;   /* keep ::before counter with heading text */
   }
   .publication h2::before {
     font-size: 9px;
@@ -760,7 +760,21 @@ body {
 @media print {
   .publication .activity-panel {
     margin: 0 0 18px;
+    /* allow the panel itself to split across pages */
+    break-inside: auto;
+  }
+  .publication .activity-grid {
+    /* grids are atomic by default in Chromium — override so rows can split */
+    display: block;
+    gap: 0;
+  }
+  /* keep each individual card together when flowing across pages */
+  .publication .momentum-card,
+  .publication .signal-brief,
+  .publication .kpi-row {
+    break-inside: avoid;
     page-break-inside: avoid;
+    margin-bottom: 8px;
   }
   .publication .activity-legend {
     gap: 12px;
@@ -771,11 +785,10 @@ body {
     width: 8px;
     height: 8px;
   }
-  .publication .activity-grid {
-    gap: 8px;
-  }
   .publication .chart-card {
     padding: 8px 10px 6px;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
   .publication .chart-title {
     font-size: 9px;

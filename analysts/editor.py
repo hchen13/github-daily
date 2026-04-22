@@ -230,10 +230,7 @@ def build_user_prompt(target_date: date, repos: list[RepoConfig],
     parts.append("=" * 72)
     parts.append("任务")
     parts.append("=" * 72)
-    parts.append(
-        "按 system prompt 给的模板输出今日刊物 Markdown。"
-        "记住：判断先行、不要 issue/PR 编号、允许平淡。"
-    )
+    parts.append("开始写。")
 
     return "\n".join(parts)
 

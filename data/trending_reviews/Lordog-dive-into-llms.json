@@ -1,21 +1,24 @@
 {
   "full_name": "Lordog/dive-into-llms",
-  "reviewed_at": "2026-04-20T03:13:12Z",
+  "reviewed_at": "2026-04-21T02:26:01Z",
   "model": "claude-sonnet-4-6",
-  "duration_s": 86.1,
+  "duration_s": 62.8,
   "total_lines": 7097,
-  "intro": "上海交通大学 NIS8021/NIS3353 两门课程的配套编程实践教材，11 章 Jupyter Notebook 覆盖 LLM 微调、提示学习、知识编辑、数学推理、水印、越狱攻击、隐写术、多模态、GUI Agent、智能体安全、RLHF 对齐，面向高校科研入门读者。",
+  "intro": "上海交通大学 NIS8021 / NIS3353 两门课程的正式配套实践教程，面向 AI/NLP 学生，覆盖从模型微调部署到 RLHF、越狱攻击、LLM 隐写术共 11 个专题，以 Jupyter notebook + PDF 课件形式交付。",
   "tech_stack": [
-    "Python + Jupyter Notebook（全部以 .ipynb 形式交付）",
-    "PyTorch（chapter4 实测 torch 2.7.0+cu126，8 卡 A100 环境）",
-    "Hugging Face Transformers / TRL / Datasets",
-    "vLLM（chapter4 用 v0.9.0.1 做推理后端）",
-    "Gradio（chapter1 部署 Demo）",
-    "Qwen2.5 系列模型（chapter4 Qwen2.5-Math-1.5B，chapter9 Qwen2-VL-7B）"
+    "Python / Jupyter notebooks",
+    "PyTorch + HuggingFace Transformers / TRL / Datasets",
+    "vLLM（chapter 4 推理加速）",
+    "EasyJailbreak（chapter 6 越狱框架）",
+    "Qwen2.5-Math-1.5B + DeepMath-103K（chapter 4 数学推理蒸馏）",
+    "Gradio（chapter 1 模型部署）"
   ],
-  "scale": "纯文档型 repo，无可运行的 Python 包结构。11 个 chapter 目录，每章三件套：README.md + .ipynb（含执行输出）+ PDF 讲义。唯一的 requirements.txt 在 chapter11，其余章节依赖散落在 README 里手动安装。浅克隆只能看到一个 commit，README Updates 里最后一条是 2025-06-06，联合华为昇腾新增了配套课程，整体仍在活跃维护。",
+  "scale": "纯文档型仓库，11 个章节各自独立、无统一 setup.py 或顶层 requirements.txt（各章自管依赖）。由 SJTU BCMI 实验室张倬胜领衔、十余名师生共同开发，2025 年 6 月有内容更新并新增昇腾合作版。Chapter 11 保留了完整 PPO 训练输出（A800-SXM4-80GB，35min19s），有真实运行记录。",
   "scale_tag": "",
-  "tech_tags": [],
-  "verdict": "",
-  "evaluation": "上交大课程讲义的水准——这是定性。不是玩具，也不是严肃工程库，是一套用来跑通才算完的教学演示材料。\n\n真正值得看的地方有两处。第一，chapter4 不是走通常那种\"加载 LoRA、跑几步\"的套路，而是完整复现了迷你 R1 的蒸馏路线：从 DeepMath-103K 过滤纯数字答案子集（103K → 15310 条），拿 DeepSeek-R1 的推理路径做 SFT，在 Qwen2.5-Math-1.5B 上跑三个 epoch，最终在 math500 上拿到 45.2% 的准确率——notebook 里有完整的执行输出，说明是真跑过的。第二，chapter11 的 PPO 实验用 TRL 0.9.4 带着 GPT-2 跑 RLHF，奖励均值从 0.59 提到 2.24，同样有训练曲线和对比表，不是空话。\n\n适合谁：打算入手 LLM 微调方向、需要一份有代码可以对照跑的参考材料的在校研究生。章节覆盖面广、主题选得比同类教程新（隐写术、GUI Agent、越狱都有），2025 年还能更新到 vLLM v0.9 这个版本，说明维护者是真在用。\n\n不适合谁：想要生产级部署方案或可直接 pip install 使用的库的人。各章环境配置散落在 README 里，没有统一的 conda env 或 pyproject.toml，复现门槛实际上不低，特别是 chapter4 需要 80GB 显存单卡（README 标注了 A100 80GB），chapter11 注明单卡 A800-SXM4-80GB 跑了 35 分钟——普通用户先掂量一下硬件。"
+  "tech_tags": [
+    "RLHF / 越狱 / 隐写全覆盖",
+    "DeepSeek-R1 蒸馏实践"
+  ],
+  "verdict": "SJTU 正式课程配套材料，选题有深度（含 PPO-RLHF、LLM 隐写、GUI Agent），但重型章节需 40GB+ 显存，门槛筛掉大部分个人用户。",
+  "evaluation": "这是 SJTU NIS8021/NIS3353 的正式实验配套，不是随便包装的入门 repo。11 个专题从微调、Prompt/CoT、知识编辑，一路延伸到模型水印、越狱攻击、LLM 隐写术、多模态、GUI Agent、Agent 安全、PPO-RLHF——选题覆盖面和深度在同类中文开源教程里算扎实的，有明显学术研究组做课程的气质。\n\n真正值得停下来看的有两处。一是 chapter 4\"迷你 R1\"：用 Qwen2.5-Math-1.5B 在 DeepMath-103K 上做 SFT 蒸馏 DeepSeek-R1 推理链，40GB+ 显存起步，vLLM 推理 + 数学评测全流程都在 notebook 里；这条路子国内学生现在跑得很多，这个教程给了一份可对照的参考实现。二是 chapter 7 LLM 隐写术——霍夫曼编码和 FLC 两种方案都有，这个主题在中文教程里极少见，适合做文本安全方向的同学补课。\n\n限制也直接：各章依赖独立管理，初次配置的摸索成本不低；重型章节（ch4 需 40GB 显存、ch11 用 A800-80GB）直接拦住大部分个人用户；昇腾合作那条线指向华为外链，实验内容不在仓库内，国产化硬件那部分资料看不到。适合有 GPU 资源的课程学习者或做 LLM 安全研究的同学对照练手，轻量入门建议先从 ch2（API 调用）或 ch5（水印，CPU 可跑）试手。"
 }

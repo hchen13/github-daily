@@ -1,0 +1,25 @@
+/* Mobile-share overrides: injected only for PDF/JPEG rendering.
+   The web publication.html uses apple.css alone.
+
+   zoom: 1.25 scales all content uniformly — fonts, spacing, chips.
+   Effective viewport shrinks to (real-width / 1.25):
+     JPEG 750px → 600px effective  (WeChat image standard)
+     PDF  980px → 784px effective  (fits A4 at ~1:1)
+*/
+html {
+  zoom: 1.25;
+}
+
+/* Fill the narrowed effective viewport; reduce side padding slightly. */
+.publication {
+  max-width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Force exact color reproduction in PDF — prevents Chromium from
+   converting SVG strokes and colored elements to black/grayscale. */
+* {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}

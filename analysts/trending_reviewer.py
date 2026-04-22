@@ -229,8 +229,7 @@ def run_reviewer(full_name: str, clone_path: Path, claude_bin: str, model: str) 
     system_prompt = build_system_prompt("trending_reviewer.md")
     user_prompt = (
         f"目标仓库：{full_name}\n"
-        f"本地克隆路径：{clone_path}\n\n"
-        "开始翻。按四个 section 输出：INTRO / TECH_STACK / SCALE / EVALUATION。"
+        f"本地克隆路径：{clone_path}\n"
     )
 
     cmd = [
