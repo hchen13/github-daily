@@ -32,6 +32,7 @@ logger = logging.getLogger("narrator")
 
 WORK_ROOT = Path("/tmp/github-daily")
 WINDOW_HOURS = 24
+BACKGROUND_DAYS = 7
 
 
 def _slug(full_name: str) -> str:
@@ -89,6 +90,44 @@ def collect_window(repo: RepoConfig, db_path: str, cutoff_iso: str) -> dict:
     return out
 
 
+def collect_background(repo: RepoConfig, db_path: str, bg_iso: str) -> dict:
+    """Return last BACKGROUND_DAYS days of issues/PRs/commits (includes today's 24h window)."""
+    full_name = repo.full_name
+    out = {"issues": [], "prs": [], "commits": []}
+
+    with get_db(db_path) as conn:
+        rows = conn.execute("""
+            SELECT issue_number, title, body, state, author, labels,
+                   created_at, updated_at, closed_at, comments, url
+            FROM issues
+            WHERE repo_full_name = ?
+              AND (updated_at >= ? OR created_at >= ? OR closed_at >= ?)
+            ORDER BY updated_at DESC
+        """, (full_name, bg_iso, bg_iso, bg_iso)).fetchall()
+        out["issues"] = [dict(r) for r in rows]
+
+        rows = conn.execute("""
+            SELECT pr_number, title, body, state, author, labels,
+                   base_branch, head_branch, created_at, updated_at, merged_at, url
+            FROM pull_requests
+            WHERE repo_full_name = ?
+              AND (updated_at >= ? OR created_at >= ? OR merged_at >= ?)
+            ORDER BY updated_at DESC
+        """, (full_name, bg_iso, bg_iso, bg_iso)).fetchall()
+        out["prs"] = [dict(r) for r in rows]
+
+        rows = conn.execute("""
+            SELECT branch, sha, author, message, committed_at, url
+            FROM commits
+            WHERE repo_full_name = ?
+              AND committed_at >= ?
+            ORDER BY committed_at DESC
+        """, (full_name, bg_iso)).fetchall()
+        out["commits"] = [dict(r) for r in rows]
+
+    return out
+
+
 def _write_dimension_files(workdir: Path, data: dict) -> dict[str, Path]:
     workdir.mkdir(parents=True, exist_ok=True)
     paths: dict[str, Path] = {}
@@ -99,12 +138,16 @@ def _write_dimension_files(workdir: Path, data: dict) -> dict[str, Path]:
     return paths
 
 
-def _build_user_prompt(repo: RepoConfig, paths: dict[str, Path],
-                      counts: dict[str, int], anchor: datetime) -> str:
+def _build_user_prompt(repo: RepoConfig,
+                      paths: dict[str, Path], counts: dict[str, int],
+                      bg_paths: dict[str, Path], bg_counts: dict[str, int],
+                      anchor: datetime) -> str:
     window_start = anchor - timedelta(hours=WINDOW_HOURS)
+    bg_start = anchor - timedelta(days=BACKGROUND_DAYS)
     lines = [
         f"Repo: {repo.display_name} ({repo.full_name})",
-        f"Window: {_iso_utc(window_start)} → {_iso_utc(anchor)} (24h)",
+        f"今日增量: {_iso_utc(window_start)} → {_iso_utc(anchor)} (24h)",
+        f"背景窗口: {_iso_utc(bg_start)} → {_iso_utc(anchor)} ({BACKGROUND_DAYS}天，含今日)",
     ]
 
     wiki = load_wiki(repo.full_name)
@@ -124,7 +167,13 @@ def _build_user_prompt(repo: RepoConfig, paths: dict[str, Path],
 
     lines += [
         "",
-        "## 今日 24h 原始数据（用 Read 工具按需打开）",
+        f"## 近 {BACKGROUND_DAYS} 天背景数据（含今日；用 Read 工具按需打开）",
+        "理解整体趋势和演进方向用——今天的事件在这个项目近期的弧线上处于什么位置？",
+        f"- {bg_paths['issues']}  ({bg_counts['issues']} issues)",
+        f"- {bg_paths['prs']}     ({bg_counts['prs']} PRs)",
+        f"- {bg_paths['commits']} ({bg_counts['commits']} commits)",
+        "",
+        "## 今日 24h 增量（你主要报告这些）",
         f"- {paths['issues']}  ({counts['issues']} issues)",
         f"- {paths['prs']}     ({counts['prs']} PRs)",
         f"- {paths['commits']} ({counts['commits']} commits)",
@@ -138,15 +187,21 @@ def _build_user_prompt(repo: RepoConfig, paths: dict[str, Path],
 def run_narrator(repo: RepoConfig, db_path: str, claude_bin: str,
                  model: str, anchor: datetime) -> Optional[str]:
     cutoff_iso = _iso_utc(anchor - timedelta(hours=WINDOW_HOURS))
+    bg_iso = _iso_utc(anchor - timedelta(days=BACKGROUND_DAYS))
+
     data = collect_window(repo, db_path, cutoff_iso)
+    bg_data = collect_background(repo, db_path, bg_iso)
     counts = {k: len(v) for k, v in data.items()}
-    logger.info("[%s] window counts: %s", repo.full_name, counts)
+    bg_counts = {k: len(v) for k, v in bg_data.items()}
+    logger.info("[%s] 24h counts: %s | %dd background: %s",
+                repo.full_name, counts, BACKGROUND_DAYS, bg_counts)
 
     workdir = WORK_ROOT / anchor.strftime("%Y-%m-%d") / _slug(repo.full_name)
     paths = _write_dimension_files(workdir, data)
+    bg_paths = _write_dimension_files(workdir / "background", bg_data)
 
     system_prompt = build_system_prompt("narrator.md")
-    user_prompt = _build_user_prompt(repo, paths, counts, anchor)
+    user_prompt = _build_user_prompt(repo, paths, counts, bg_paths, bg_counts, anchor)
 
     cmd = [
         claude_bin,

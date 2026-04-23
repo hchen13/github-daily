@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import sys
 
 import uvicorn
@@ -23,8 +22,8 @@ def main(argv: list[str] | None = None) -> int:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
 
-    os.environ["GITHUB_DAILY_ROOT"] = args.root_path.rstrip("/")
-    uvicorn.run("web.app:app", host=args.host, port=args.port, reload=args.reload, log_level="info")
+    uvicorn.run("web.app:app", host=args.host, port=args.port,
+                root_path=args.root_path, reload=args.reload, log_level="info")
     return 0
 
 

@@ -18,7 +18,7 @@ from datetime import date
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -30,10 +30,6 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ASSETS_DIR = PROJECT_ROOT / "assets"
 RENDERS_DIR = PROJECT_ROOT / "data" / "renders"
 PUBLICATIONS_DIR = PROJECT_ROOT / "data" / "publications"
-
-# URL prefix when served behind a reverse proxy (e.g. /github-daily).
-# Set via env var GITHUB_DAILY_ROOT or the --root-path CLI flag.
-ROOT = os.environ.get("GITHUB_DAILY_ROOT", "").rstrip("/")
 
 app = FastAPI(title="GitHub Daily", description="辛哥的开源风向")
 app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
@@ -71,21 +67,21 @@ def extract_article(html: str) -> str:
     return html[start:end + len(end_marker)]
 
 
-def render_chrome(title: str, body: str, current_date: Optional[str] = None) -> str:
+def render_chrome(title: str, body: str, current_date: Optional[str] = None, root: str = "") -> str:
     """Wrap body in the web-UI chrome: shared apple CSS + sticky nav."""
-    css_href = f"{ROOT}/assets/themes/apple.css"
+    css_href = f"{root}/assets/themes/apple.css"
     nav_extra = f' · <code>{current_date}</code>' if current_date else ""
     float_html = ""
     if current_date:
         float_html = (
             f'  <div class="float-actions">\n'
-            f'    <a class="float-btn" href="{ROOT}/d/{current_date}/pdf" target="_blank" title="查看 PDF">'
+            f'    <a class="float-btn" href="{root}/d/{current_date}/pdf" target="_blank" title="查看 PDF">'
             f'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
             f'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
             f'<polyline points="14 2 14 8 20 8"/>'
             f'<line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>'
             f'</svg></a>\n'
-            f'    <a class="float-btn" href="{ROOT}/d/{current_date}/jpeg" target="_blank" title="查看图片">'
+            f'    <a class="float-btn" href="{root}/d/{current_date}/jpeg" target="_blank" title="查看图片">'
             f'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
             f'<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>'
             f'<circle cx="8.5" cy="8.5" r="1.5"/>'
@@ -148,13 +144,13 @@ def render_chrome(title: str, body: str, current_date: Optional[str] = None) -> 
   <nav class="web-nav">
     <div class="brand">GitHub Daily<small>辛哥的开源风向{nav_extra}</small></div>
     <div class="links">
-      <a href="{ROOT}/">今日</a>
-      <a href="{ROOT}/archive">历史</a>
-      <a href="{ROOT}/settings">设置</a>
+      <a href="{root}/">今日</a>
+      <a href="{root}/archive">历史</a>
+      <a href="{root}/settings">设置</a>
     </div>
   </nav>
 {body}
-{float_html}  <script src="{ROOT}/assets/themes/chart-tooltip.js"></script>
+{float_html}  <script src="{root}/assets/themes/chart-tooltip.js"></script>
 </body>
 </html>
 """
@@ -162,26 +158,33 @@ def render_chrome(title: str, body: str, current_date: Optional[str] = None) -> 
 
 # ── routes ──────────────────────────────────────────────────────────────────
 
+def _root(request: Request) -> str:
+    return request.scope.get("root_path", "").rstrip("/")
+
+
 @app.get("/", response_class=HTMLResponse)
-def home():
+def home(request: Request):
+    root = _root(request)
     dates = list_publication_dates()
     if not dates:
         return HTMLResponse(render_chrome(
             "GitHub Daily",
             '<article class="publication"><h1>暂无刊物</h1><p>运行 <code>python -m run</code> 生成今日刊物。</p></article>',
+            root=root,
         ))
-    return _serve_publication_html(dates[0])
+    return _serve_publication_html(dates[0], root)
 
 
 @app.get("/d/{day}", response_class=HTMLResponse)
-def serve_day(day: str):
+def serve_day(request: Request, day: str):
     _validate_date(day)
-    return _serve_publication_html(day)
+    return _serve_publication_html(day, _root(request))
 
 
 @app.get("/d/{day}/pdf", response_class=HTMLResponse)
-def serve_pdf(day: str):
+def serve_pdf(request: Request, day: str):
     _validate_date(day)
+    root = _root(request)
     path = RENDERS_DIR / day / "publication.pdf"
     if not path.exists():
         raise HTTPException(404, f"No PDF for {day}")
@@ -191,7 +194,7 @@ def serve_pdf(day: str):
 <title>PDF · {day}</title>
 <style>*{{margin:0;padding:0;box-sizing:border-box}}html,body{{height:100%;background:#525659}}</style>
 </head><body>
-<embed src="{ROOT}/d/{day}/pdf-file" type="application/pdf" width="100%" height="100%">
+<embed src="{root}/d/{day}/pdf-file" type="application/pdf" width="100%" height="100%">
 </body></html>""")
 
 
@@ -206,8 +209,9 @@ def serve_pdf_file(day: str):
 
 
 @app.get("/d/{day}/jpeg", response_class=HTMLResponse)
-def serve_jpeg(day: str):
+def serve_jpeg(request: Request, day: str):
     _validate_date(day)
+    root = _root(request)
     path = RENDERS_DIR / day / "publication.jpeg"
     if not path.exists():
         raise HTTPException(404, f"No JPEG for {day}")
@@ -217,7 +221,7 @@ def serve_jpeg(day: str):
 <title>图片 · {day}</title>
 <style>*{{margin:0;padding:0;box-sizing:border-box}}body{{background:#1d1d1f}}</style>
 </head><body>
-<img src="{ROOT}/d/{day}/jpeg-file" style="display:block;width:100%;height:auto">
+<img src="{root}/d/{day}/jpeg-file" style="display:block;width:100%;height:auto">
 </body></html>""")
 
 
@@ -232,7 +236,8 @@ def serve_jpeg_file(day: str):
 
 
 @app.get("/archive", response_class=HTMLResponse)
-def archive():
+def archive(request: Request):
+    root = _root(request)
     dates = list_publication_dates()
     dates_json = json.dumps(dates)
     body = f"""
@@ -304,7 +309,7 @@ def archive():
       if (DATES.has(ds)) {{
         el.classList.add('has-pub');
         el.innerHTML += '<span class="dot"></span>';
-        el.addEventListener('click', function() {{ window.location.href='{ROOT}/d/'+ds; }});
+        el.addEventListener('click', function() {{ window.location.href='{root}/d/'+ds; }});
       }}
       grid.appendChild(el);
     }}
@@ -315,11 +320,12 @@ def archive():
 }})();
 </script>
 """
-    return HTMLResponse(render_chrome("历史 · GitHub Daily", body))
+    return HTMLResponse(render_chrome("历史 · GitHub Daily", body, root=root))
 
 
 @app.get("/settings", response_class=HTMLResponse)
-def settings():
+def settings(request: Request):
+    root = _root(request)
     cfg = load_config()
     repos_html = "\n".join(
         f"<li><strong>{r.display_name}</strong> <code>{r.full_name}</code> "
@@ -360,7 +366,7 @@ def settings():
   </ul>
 </article>
 """
-    return HTMLResponse(render_chrome("设置 · GitHub Daily", body))
+    return HTMLResponse(render_chrome("设置 · GitHub Daily", body, root=root))
 
 
 @app.get("/api/publications")
@@ -397,11 +403,11 @@ def _validate_date(day: str) -> None:
         raise HTTPException(400, "Invalid date format. Use YYYY-MM-DD.")
 
 
-def _serve_publication_html(day: str) -> HTMLResponse:
+def _serve_publication_html(day: str, root: str = "") -> HTMLResponse:
     rendered = RENDERS_DIR / day / "publication.html"
     if rendered.exists():
         article = extract_article(rendered.read_text(encoding="utf-8"))
-        return HTMLResponse(render_chrome(f"{day} · GitHub Daily", article, current_date=day))
+        return HTMLResponse(render_chrome(f"{day} · GitHub Daily", article, current_date=day, root=root))
     md_path = PUBLICATIONS_DIR / f"{day}.md"
     if md_path.exists():
         body = (
@@ -412,5 +418,5 @@ def _serve_publication_html(day: str) -> HTMLResponse:
             f'<code>python -m run --only render --date {day}</code> 后刷新。</p>'
             '</article>'
         )
-        return HTMLResponse(render_chrome(f"{day} · 渲染 pending", body))
+        return HTMLResponse(render_chrome(f"{day} · 渲染 pending", body, root=root))
     raise HTTPException(404, f"No publication for {day}")
