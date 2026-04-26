@@ -56,6 +56,7 @@ def collect_window(repo: RepoConfig, db_path: str, cutoff_iso: str) -> dict:
             WHERE repo_full_name = ?
               AND (updated_at >= ? OR created_at >= ? OR closed_at >= ?)
             ORDER BY updated_at DESC
+            LIMIT 80
         """, (full_name, cutoff_iso, cutoff_iso, cutoff_iso)).fetchall()
         out["issues"] = [dict(r) for r in rows]
 
@@ -66,6 +67,7 @@ def collect_window(repo: RepoConfig, db_path: str, cutoff_iso: str) -> dict:
             WHERE repo_full_name = ?
               AND (updated_at >= ? OR created_at >= ? OR merged_at >= ?)
             ORDER BY updated_at DESC
+            LIMIT 60
         """, (full_name, cutoff_iso, cutoff_iso, cutoff_iso)).fetchall()
         out["prs"] = [dict(r) for r in rows]
 
@@ -222,7 +224,7 @@ def run_narrator(repo: RepoConfig, db_path: str, claude_bin: str,
             input=user_prompt,
             capture_output=True,
             text=True,
-            timeout=600,
+            timeout=900,
         )
     except subprocess.TimeoutExpired:
         logger.error("[%s] claude CLI timed out", repo.full_name)
